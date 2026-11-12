@@ -1,0 +1,185 @@
+# Roadmap de Quarry
+
+Hitos pequeños y verificables. Al terminar cada uno: compilar en los tres sistemas (CI), pasar los tests, comprobar los criterios de aceptación y los presupuestos de [PERFORMANCE.md](PERFORMANCE.md), actualizar este archivo y **esperar el visto bueno** antes del siguiente.
+
+Estados: `pendiente` · `en curso` · `hecho` · `bloqueado`
+
+| Hito | Contenido | Estado |
+|---|---|---|
+| F0 | Entorno de desarrollo (Windows verificado) | hecho |
+| H0 | Esqueleto + CI en los tres sistemas | pendiente |
+| H1 | Versión mínima (subhitos 1.1–1.8) | pendiente |
+| H2 | Edición de datos | pendiente |
+| H3 | Autocompletado | pendiente |
+| H4 | Historial y consultas guardadas | pendiente |
+| H5 | Exportación | pendiente |
+| H6 | MySQL / MariaDB | pendiente |
+| H7 | SQL Server + ODBC genérico | pendiente |
+| H8 | Túneles SSH | pendiente |
+| H9 | EXPLAIN visual | pendiente |
+| H10 | Distribución | pendiente |
+| — | Oracle (ODPI-C) | sin fecha |
+
+---
+
+## H0 — Esqueleto del proyecto
+
+**Objetivo:** estructura `core` / `providers` / `app` que compila y pasa los tests en la CI de Windows, macOS y Linux, reutilizando los scripts de la FASE 0.
+
+- Renombrar el proyecto a `quarry`: carpeta, `project()`, venv de aqt, docs. Añadir `LICENSE` (Apache-2.0) y `NOTICE`.
+- `vcpkg.json` con `builtin-baseline` y las dependencias de H1 (`sqlite3`, `libpq`, `qtkeychain-qt6`, `syntax-highlighting`), más `vcpkg-overlays/` (shim de `qtbase`/`qttools` + triplets `*-quarry`) según ARCHITECTURE §9.
+- Targets: `quarry_provider_api` (INTERFACE), `quarry_core` (Qt6::Core), `quarry_provider_dummy` (MODULE de prueba), `quarry` (exe con una ventana vacía y el estilo Basic propio).
+- `cmake/QuarryHelpers.cmake`: `quarry_add_provider()`, `quarry_add_test()`, warnings estrictos (`/W4 /permissive-` · `-Wall -Wextra -Wpedantic`), warnings como error en la CI.
+- `.clang-format`, `.clang-tidy` (subconjunto razonable) y `.editorconfig`.
+- GitHub Actions `ci.yml`: matriz `windows-2022`, `macos-14` (arm64), `ubuntu-24.04`. Pasos: `scripts/setup.* --non-interactive` → `cmake --preset <os>-release` → build → `ctest`. Caché de aqt y de vcpkg (binary caching con `actions/cache`).
+- Repo privado en GitHub (`gh repo create`, **con confirmación antes del push**).
+
+**Criterios de aceptación**
+- [ ] `ctest --preset <os>-debug` pasa en local (Windows) y la CI está en verde en los tres sistemas.
+- [ ] Test: `ProviderRegistry` lista el plugin dummy por metadatos **sin cargarlo** (`QPluginLoader::isLoaded() == false`), y lo carga al pedir `provider("dummy")`.
+- [ ] Test de arquitectura: `quarry_core` no enlaza Qt6::Gui (se comprueba con `get_target_property` en CMake o con una inspección de las dependencias en un test).
+- [ ] `quarry --smoke` arranca y cierra con código 0 y sin warnings de QML en los tres sistemas (offscreen en Linux).
+- [ ] QtKeychain y KSyntaxHighlighting compilan con vcpkg contra Qt 6.12 de aqt (no aparece una segunda Qt en `vcpkg_installed`).
+
+---
+
+## H1 — Versión mínima
+
+Se divide en subhitos y cada uno se puede revisar por separado. Al final de H1, el usuario puede conectarse a SQLite y PostgreSQL, explorar el esquema, escribir SQL con resaltado, ejecutarlo de forma asíncrona y cancelable, y ver millones de filas sin que la UI se bloquee.
+
+### H1.1 — Núcleo de ejecución + provider SQLite
+- `Result<T>`, `Error`, `CancellationToken`, `ResultBatch`/`ColumnBuffer`, interfaces de provider (ARCHITECTURE §3–4).
+- `SessionWorker` / `SessionManager` (§5), señales `columnsReady`/`batchReady`/`finished`/`failed`.
+- Provider SQLite: abrir archivo y `:memory:`, `children()` (tablas, vistas, columnas, índices, FKs), streaming, `sqlite3_interrupt`, dialecto con `splitStatements`.
+- Suite de conformidad de providers (`tests/providers/conformance/`).
+
+Criterios:
+- [ ] Conformidad SQLite en verde: tipos, NULLs, 0 filas, varios statements, errores con `position`.
+- [ ] Cancelar un `WITH RECURSIVE` infinito devuelve `Cancelled` en < 200 ms.
+- [ ] `SELECT` de 1 M de filas en batches de 500 sin bloquear el hilo llamante (test con `QSignalSpy`, y el hilo principal procesa eventos durante el streaming).
+- [ ] Bench: el núcleo procesa 1 M filas × 10 columnas en ≤ 1,5 s, con ≤ 200 MB de RSS (PERFORMANCE.md).
+
+### H1.2 — Shell de la aplicación, tema y componentes base
+- Ventana principal: barra lateral, área de pestañas, panel de resultados y barra de estado (UX.md §3).
+- `ThemeManager`: claro, oscuro y alto contraste, siguiendo `QStyleHints::colorScheme` y `accessibility()->contrastPreference/motionPreference`, con posibilidad de forzarlos desde los ajustes.
+- Componentes del estilo propio: `QuarryButton`, `TextField`, `ComboBox`, `CheckBox`, `Dialog`, `Menu`, `ToolTip`, `SplitView`, `TabBar`, con foco visible y `Accessible.*`.
+- Paleta de comandos (Ctrl/Cmd+K) con `CommandRegistry`.
+- i18n: `qt_add_translations`, `quarry_es.ts`.
+
+Criterios:
+- [ ] Test QML: todo `Item` con `activeFocusOnTab` tiene `Accessible.name` no vacío y un rol que no es `NoRole`.
+- [ ] Test unitario de contraste: todos los pares texto/fondo de los tres temas cumplen ≥ 4.5:1, y los indicadores de foco y bordes de controles ≥ 3:1.
+- [ ] Al cambiar el tema del sistema, la app cambia en caliente. Con alto contraste o movimiento reducido activados, la app los respeta.
+- [ ] Toda la ventana se recorre con Tab, Shift+Tab y F6, sin trampas de foco.
+- [ ] Arranque en frío ≤ presupuesto (PERFORMANCE.md).
+
+### H1.3 — Conexiones y credenciales
+- `AppDatabase` (`quarry.db`, migraciones) y `ConnectionStore`.
+- Diálogo de conexión generado a partir de `connectionFields()`, con la sección avanzada plegada y el botón "Test connection".
+- `CredentialStore` (QtKeychain) con "Save password" o "Ask every time".
+- Color por conexión y marca de producción (rojo + icono + texto "PRODUCTION").
+- Estado vacío: "No connections yet: create one or open a SQLite file", con botones.
+
+Criterios:
+- [ ] Tras guardar una conexión, `quarry.db` no contiene la contraseña (test que busca la cadena en el archivo).
+- [ ] La contraseña se lee del llavero en Windows y macOS (manual) y en Linux (CI, con `gnome-keyring` en modo headless).
+- [ ] Un fallo de autenticación muestra un mensaje claro y el detalle técnico desplegable.
+
+### H1.4 — Árbol de esquemas bajo demanda
+- `SchemaTreeModel` (QAbstractItemModel) con `canFetchMore`/`fetchMore` por nodo y una sesión de metadatos propia.
+- Nodos: conexión → base de datos → esquema → carpetas (Tables, Views, …) → objeto → columnas/índices/FKs.
+- Teclado: flechas, ←/→ para plegar y desplegar, Enter para abrir, búsqueda escribiendo, menú contextual (Shift+F10 / tecla Menú).
+
+Criterios:
+- [ ] `QAbstractItemModelTester` sin errores.
+- [ ] Desplegar un esquema con 10 000 tablas no bloquea la UI (ningún frame > 50 ms) y muestra el indicador "Loading…" accesible.
+- [ ] El lector de pantalla anuncia el nivel, el estado plegado/desplegado y la posición ("Tables, expanded, 3 of 5").
+
+### H1.5 — Editor SQL
+- Editor sobre `TextEdit` con KSyntaxHighlighting (`QQuickTextDocument`) y la definición del dialecto.
+- Números de línea, sentencia actual resaltada, Ctrl/Cmd+Enter (sentencia actual) y Ctrl/Cmd+Shift+Enter (todo).
+- Pestañas de editor (Ctrl/Cmd+T, Ctrl/Cmd+W) asociadas a una conexión.
+
+Criterios:
+- [ ] Resaltado correcto para SQLite y PostgreSQL (`$$…$$`, comentarios anidados).
+- [ ] Teclear en un archivo de 10 000 líneas no supera 16 ms por tecla (p95).
+- [ ] El lector de pantalla lee el texto del editor y el número de línea.
+
+### H1.6 — Ejecución asíncrona y cancelable en la UI
+- Barra de estado: `Running… 00:03`, botón Cancel (Esc / Ctrl/Cmd+.), filas y tiempo al acabar.
+- Panel de mensajes: errores con `position` subrayada en el editor, notices y filas afectadas.
+- `SqlSafety`: confirmación para `UPDATE`/`DELETE` sin `WHERE`, y para `DROP`/`TRUNCATE` en conexiones de producción.
+
+Criterios:
+- [ ] La UI responde durante la consulta: se puede cambiar de pestaña, desplegar el árbol y cancelar.
+- [ ] El inicio y el fin de la ejecución se anuncian (`Accessible.announce`) sin robar el foco.
+- [ ] Tests de `SqlSafety`: detecta `DELETE FROM t`, `delete from t -- where`, y no da falso positivo con `DELETE … WHERE` ni con CTE + `WHERE`.
+
+### H1.7 — Grid de resultados virtualizado
+- `ResultTableModel` sobre `ResultBatch` (texto solo en `data()`), `fetchMore` de 500 filas y "Fetch all".
+- `QuarryGrid`: `TableView` con cabeceras fijas, selección por celda, rango o fila, copiar (TSV), ajuste de ancho de columna y navegación completa con teclado.
+- **Spike de accesibilidad** (ARCHITECTURE §13): `QAccessibleTableInterface` propio. Si no es viable en el plazo del subhito, se pasa al plan B con `announce`, y la decisión se documenta.
+- NULL se muestra como texto "NULL" en cursiva y atenuado (no solo con color); los BLOB como `<binary 2.3 KB>`.
+
+Criterios:
+- [ ] Bench: 1 M filas × 10 columnas (SQLite local). Primer batch visible ≤ 150 ms; "Fetch all" ≤ 3 s; RAM ≤ 250 MB; scroll continuo sin frames > 33 ms (p95 ≤ 16 ms).
+- [ ] NVDA, VoiceOver y Orca anuncian la cabecera de columna y el valor al moverse por las celdas (lista de comprobación manual de UX.md §7).
+- [ ] `QAbstractItemModelTester` sin errores durante el streaming.
+
+### H1.8 — Provider PostgreSQL
+- libpq 18: `PQsendQueryParams` + `PQsetChunkedRowsMode`, cancelación con `PQcancelCreate`/`PQcancelBlocking`, SSL (`sslmode`), introspección por `pg_catalog`.
+- Tipos: int2/4/8, numeric (texto exacto), float, bool, text/varchar, bytea, date/time/timestamp(tz), uuid, json/jsonb, arrays (como texto en v1).
+- CI: contenedor de servicio `postgres:17` en el job de Linux; la conformidad corre allí. En Windows y macOS se compila y solo corren los tests unitarios.
+
+Criterios:
+- [ ] Conformidad PostgreSQL en verde en la CI.
+- [ ] Cancelar `SELECT pg_sleep(60)` vuelve en < 500 ms y la conexión queda usable.
+- [ ] El error de sintaxis marca la posición correcta en el editor.
+
+---
+
+## H2 — Edición de datos
+- Edición en el grid de tablas con PK (o con ROWID/ctid y aviso), insertar y borrar filas.
+- Los cambios se acumulan en local con indicador visual (icono + texto, no solo color). **Vista previa del SQL** generado antes de aplicar. Se aplica en una transacción.
+- Deshacer/rehacer de cambios pendientes (Ctrl/Cmd+Z / Shift+Z).
+- Conexiones de producción: confirmación reforzada (hay que escribir el nombre de la conexión).
+
+Criterios: la vista previa coincide exactamente con lo que se ejecuta (test); fallo a mitad → rollback y los cambios siguen pendientes; edición completa por teclado (F2/Enter/Esc/Tab).
+
+## H3 — Autocompletado
+- Palabras clave del dialecto, esquemas, tablas, columnas (con alias), funciones; caché de metadatos por sesión, invalidable.
+- Popup accesible (rol lista; se anuncia el número de sugerencias); Ctrl+Space.
+
+Criterios: sugerencias en ≤ 50 ms con 10 000 tablas en caché; nunca bloquea la escritura.
+
+## H4 — Historial y consultas guardadas
+- `query_history` con FTS5, búsqueda, filtro por conexión, re-ejecutar o copiar al editor. Consultas guardadas con carpetas.
+- Opción de no guardar el historial por conexión (datos sensibles).
+
+## H5 — Exportación
+- CSV, TSV, JSON, JSON Lines, SQL `INSERT`, Markdown. Del resultado actual o en streaming directo desde la consulta (sin cargarla en el grid).
+
+Criterios: exportar 10 M de filas en streaming con RAM constante (≤ +50 MB); se puede cancelar.
+
+## H6 — MySQL / MariaDB
+- MariaDB Connector/C: streaming con `mysql_use_result`, `KILL QUERY` para cancelar, `DELIMITER` en `splitStatements`. Conformidad en la CI con los servicios `mariadb:11` y `mysql:8.4`.
+
+## H7 — SQL Server + ODBC genérico
+- Provider ODBC (unixODBC / iODBC / Windows ODBC); SQL Server como perfil con su dialecto (T-SQL, `GO`); ODBC genérico con capacidades reducidas. Conformidad con `mcr.microsoft.com/mssql/server` en Linux.
+
+## H8 — Túneles SSH
+- libssh2: contraseña, clave y agente; `known_hosts` con confirmación de la huella. Credenciales en el llavero. Port forwarding local en un hilo propio.
+
+## H9 — EXPLAIN visual
+- PostgreSQL (`EXPLAIN (FORMAT JSON, ANALYZE opcional)`), MySQL (`EXPLAIN FORMAT=JSON`), SQLite (`EXPLAIN QUERY PLAN`). Árbol accesible con coste y filas; vista de texto alternativa.
+
+## H10 — Distribución
+- Windows: MSIX + instalador Inno Setup, firmado. macOS: `.app` universal (arm64 + x86_64 con `lipo`), `.dmg` firmado y **notarizado**. Linux: AppImage (construido en Ubuntu 24.04) + Flatpak.
+- `windeployqt` / `macdeployqt` / `linuxdeploy` con la lista mínima de módulos; avisos de licencia LGPL de Qt y licencias de terceros en "About".
+
+Criterios: tamaño de los paquetes dentro del presupuesto; instalación y arranque limpios en máquinas virtuales de las versiones mínimas (Win10 1809, macOS 14.4, Ubuntu 24.04).
+
+## Sin fecha
+- Oracle (ODPI-C; requiere Instant Client instalado por el usuario).
+- Plugins de terceros con SDK estable.
+- Windows arm64 y Linux arm64.
