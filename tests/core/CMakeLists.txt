@@ -2,3 +2,7 @@ quarry_add_test(tst_provider_registry SOURCES tst_provider_registry.cpp LIBS qua
 target_compile_definitions(tst_provider_registry PRIVATE
     QUARRY_TEST_PLUGIN_DIR="${QUARRY_TEST_PLUGIN_OUTPUT_DIR}")
 add_dependencies(tst_provider_registry quarry_provider_dummy quarry_provider_dummy_future)
+
+quarry_add_test(tst_result SOURCES tst_result.cpp LIBS quarry_provider_api)
+quarry_add_test(tst_column_buffer SOURCES tst_column_buffer.cpp LIBS quarry_provider_api)
+quarry_add_test(tst_session SOURCES tst_session.cpp LIBS quarry_core)
