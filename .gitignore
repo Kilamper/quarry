@@ -1,0 +1,30 @@
+# Build trees
+build/
+out/
+cmake-build-*/
+CMakeUserPresets.json
+CMakeLists.txt.user*
+compile_commands.json
+
+# vcpkg (manifest mode)
+vcpkg_installed/
+
+# IDEs
+.vs/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+.qtcreator/
+*.user
+*.suo
+
+# Qt generated
+*.qmlc
+*.jsc
+.qmlls.ini
+
+# OS / misc
+.DS_Store
+Thumbs.db
+*.swp

@@ -1,0 +1,65 @@
+{
+  "version": 5,
+  "cmakeMinimumRequired": { "major": 3, "minor": 24, "patch": 0 },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+      "cacheVariables": { "CMAKE_EXPORT_COMPILE_COMMANDS": "ON" }
+    },
+    {
+      "name": "windows-base",
+      "hidden": true,
+      "inherits": "base",
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" },
+      "architecture": { "value": "x64", "strategy": "external" },
+      "toolset": { "value": "host=x64", "strategy": "external" },
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "cl",
+        "QT_BASE_DIR": "C:/Qt",
+        "QT_ARCH_DIR": "msvc2022_64",
+        "VCPKG_TARGET_TRIPLET": "x64-windows"
+      }
+    },
+    {
+      "name": "linux-base",
+      "hidden": true,
+      "inherits": "base",
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Linux" },
+      "cacheVariables": { "QT_BASE_DIR": "$env{HOME}/Qt", "QT_ARCH_DIR": "gcc_64" }
+    },
+    {
+      "name": "macos-base",
+      "hidden": true,
+      "inherits": "base",
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Darwin" },
+      "cacheVariables": { "QT_BASE_DIR": "$env{HOME}/Qt", "QT_ARCH_DIR": "macos" }
+    },
+    { "name": "windows-debug",   "inherits": "windows-base", "cacheVariables": { "CMAKE_BUILD_TYPE": "Debug" } },
+    { "name": "windows-release", "inherits": "windows-base", "cacheVariables": { "CMAKE_BUILD_TYPE": "Release" } },
+    { "name": "linux-debug",     "inherits": "linux-base",   "cacheVariables": { "CMAKE_BUILD_TYPE": "Debug" } },
+    { "name": "linux-release",   "inherits": "linux-base",   "cacheVariables": { "CMAKE_BUILD_TYPE": "Release" } },
+    { "name": "macos-debug",     "inherits": "macos-base",   "cacheVariables": { "CMAKE_BUILD_TYPE": "Debug" } },
+    { "name": "macos-release",   "inherits": "macos-base",   "cacheVariables": { "CMAKE_BUILD_TYPE": "Release" } }
+  ],
+  "buildPresets": [
+    { "name": "windows-debug",   "configurePreset": "windows-debug" },
+    { "name": "windows-release", "configurePreset": "windows-release" },
+    { "name": "linux-debug",     "configurePreset": "linux-debug" },
+    { "name": "linux-release",   "configurePreset": "linux-release" },
+    { "name": "macos-debug",     "configurePreset": "macos-debug" },
+    { "name": "macos-release",   "configurePreset": "macos-release" }
+  ],
+  "testPresets": [
+    { "name": "test-base", "hidden": true, "output": { "outputOnFailure": true } },
+    { "name": "windows-debug",   "inherits": "test-base", "configurePreset": "windows-debug" },
+    { "name": "windows-release", "inherits": "test-base", "configurePreset": "windows-release" },
+    { "name": "linux-debug",     "inherits": "test-base", "configurePreset": "linux-debug" },
+    { "name": "linux-release",   "inherits": "test-base", "configurePreset": "linux-release" },
+    { "name": "macos-debug",     "inherits": "test-base", "configurePreset": "macos-debug" },
+    { "name": "macos-release",   "inherits": "test-base", "configurePreset": "macos-release" }
+  ]
+}
