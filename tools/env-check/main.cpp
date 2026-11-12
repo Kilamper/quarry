@@ -15,13 +15,16 @@ int main(int argc, char *argv[])
         &engine, &QQmlApplicationEngine::objectCreationFailed, &app,
         [] { QCoreApplication::exit(1); }, Qt::QueuedConnection);
 
+    // Any QML warning means the toolchain or deployment is broken. A flag, not exit():
+    // warnings raised while loading arrive before exec(), where exit() is a no-op.
+    bool qmlWarnings = false;
     if (smoke) {
-        // Any QML warning means the toolchain or deployment is broken.
-        QObject::connect(&engine, &QQmlEngine::warnings, &app, [](const QList<QQmlError> &errors) {
-            for (const QQmlError &e : errors)
-                std::fprintf(stderr, "QML warning: %s\n", qPrintable(e.toString()));
-            QCoreApplication::exit(2);
-        });
+        QObject::connect(
+            &engine, &QQmlEngine::warnings, &app, [&qmlWarnings](const QList<QQmlError> &errors) {
+                for (const QQmlError &e : errors)
+                    std::fprintf(stderr, "QML warning: %s\n", qPrintable(e.toString()));
+                qmlWarnings = true;
+            });
     }
 
     engine.loadFromModule("EnvCheck", "Main");
@@ -31,5 +34,6 @@ int main(int argc, char *argv[])
     if (smoke)
         QTimer::singleShot(500, &app, &QCoreApplication::quit);
 
-    return app.exec();
+    const int code = app.exec();
+    return qmlWarnings ? 2 : code;
 }
