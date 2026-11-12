@@ -77,19 +77,19 @@ public:
 
     T &value() &
     {
-        if (!has_value())
+        if (!m_value)
             detail::badAccess("Result::value: no value");
         return *m_value;
     }
     const T &value() const &
     {
-        if (!has_value())
+        if (!m_value)
             detail::badAccess("Result::value: no value");
         return *m_value;
     }
     T &&value() &&
     {
-        if (!has_value())
+        if (!m_value)
             detail::badAccess("Result::value: no value");
         return std::move(*m_value);
     }
@@ -134,13 +134,13 @@ public:
     }
     const Error &error() const &
     {
-        if (has_value())
+        if (!m_error)
             detail::badAccess("Result::error: no error");
         return *m_error;
     }
     Error &&error() &&
     {
-        if (has_value())
+        if (!m_error)
             detail::badAccess("Result::error: no error");
         return std::move(*m_error);
     }
