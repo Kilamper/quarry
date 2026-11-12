@@ -7,7 +7,7 @@ Estados: `pendiente` · `en curso` · `hecho` · `bloqueado`
 | Hito | Contenido | Estado |
 |---|---|---|
 | F0 | Entorno de desarrollo (Windows verificado) | hecho |
-| H0 | Esqueleto + CI en los tres sistemas | pendiente |
+| H0 | Esqueleto + CI en los tres sistemas | en curso |
 | H1 | Versión mínima (subhitos 1.1–1.8) | pendiente |
 | H2 | Edición de datos | pendiente |
 | H3 | Autocompletado | pendiente |

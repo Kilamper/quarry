@@ -1,0 +1,99 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: Windows, os: windows-2022, preset: windows-release, qt_dir: 'C:\Qt' }
+          - { name: macOS, os: macos-14, preset: macos-release, qt_dir: '~/Qt' }
+          - { name: Linux, os: ubuntu-24.04, preset: linux-release, qt_dir: '~/Qt' }
+    env:
+      # Own vcpkg checkout: the image's copy may predate vcpkg.json's builtin-baseline.
+      VCPKG_ROOT: ${{ github.workspace }}/../vcpkg
+      VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/../vcpkg-cache,readwrite
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Restore Qt
+        uses: actions/cache@v4
+        with:
+          path: ${{ matrix.qt_dir }}
+          key: qt-${{ runner.os }}-${{ hashFiles('.qt-version', 'scripts/requirements-aqt.txt') }}
+
+      - name: Restore vcpkg binary cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/../vcpkg-cache
+          key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json', 'vcpkg-overlays/**', '.qt-version') }}
+          restore-keys: vcpkg-${{ runner.os }}-
+
+      - name: Create vcpkg cache dir
+        shell: bash
+        run: mkdir -p "${{ github.workspace }}/../vcpkg-cache"
+
+      - name: Setup (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./scripts/setup.ps1 -NonInteractive -SkipCompiler
+
+      - name: Setup (macOS / Linux)
+        if: runner.os != 'Windows'
+        run: ./scripts/setup.sh --non-interactive
+
+      - name: Configure, build, test (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $vs = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+          & "$vs\Common7\Tools\Launch-VsDevShell.ps1" -Arch amd64 -HostArch amd64 -SkipAutomaticLocation
+          cmake --preset ${{ matrix.preset }} -DQUARRY_WARNINGS_AS_ERRORS=ON
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          cmake --build --preset ${{ matrix.preset }}
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          ctest --preset ${{ matrix.preset }}
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+
+      - name: Configure, build, test (macOS / Linux)
+        if: runner.os != 'Windows'
+        run: |
+          cmake --preset ${{ matrix.preset }} -DQUARRY_WARNINGS_AS_ERRORS=ON
+          cmake --build --preset ${{ matrix.preset }}
+          ctest --preset ${{ matrix.preset }}
+
+      - name: clang-tidy
+        if: runner.os == 'Linux'
+        run: |
+          files=$(git ls-files 'src/*.cpp' 'tests/*.cpp')
+          clang-tidy -p build/${{ matrix.preset }} --quiet $files
+
+      - name: Upload vcpkg logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vcpkg-logs-${{ runner.os }}
+          path: |
+            ${{ github.workspace }}/../vcpkg/buildtrees/**/*.log
+          if-no-files-found: ignore
+
+  format:
+    name: clang-format
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: git ls-files '*.h' '*.cpp' | xargs clang-format --dry-run --Werror

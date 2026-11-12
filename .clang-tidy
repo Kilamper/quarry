@@ -1,0 +1,19 @@
+Checks: >
+  -*,
+  bugprone-*,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-narrowing-conversions,
+  clang-analyzer-*,
+  -clang-analyzer-cplusplus.NewDeleteLeaks,
+  performance-*,
+  modernize-use-override,
+  modernize-use-nullptr,
+  modernize-use-equals-default,
+  modernize-make-unique,
+  readability-container-size-empty,
+  readability-redundant-smartptr-get,
+  cppcoreguidelines-virtual-class-destructor
+# NewDeleteLeaks: false positives with Qt parent-child ownership.
+WarningsAsErrors: '*'
+HeaderFilterRegex: '.*/(src|tests)/.*'
+FormatStyle: file

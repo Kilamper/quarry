@@ -36,7 +36,7 @@ Pasos manuales:
 scripts/setup.sh                    # interactivo; pide confirmación antes de sudo
 scripts/setup.sh --non-interactive  # CI
 ```
-- aqt se instala en un venv propio (`~/.cache/dbmanager/aqt-venv`) para evitar el error PEP 668 `externally-managed-environment`.
+- aqt se instala en un venv propio (`~/.cache/quarry/aqt-venv`) para evitar el error PEP 668 `externally-managed-environment`.
 - Si la versión de CMake de la distribución es < 3.24, el script instala CMake desde PyPI en `~/.local/bin`.
 - El script no modifica tu perfil de shell. Añade tú `export VCPKG_ROOT=~/vcpkg`.
 
@@ -46,7 +46,12 @@ cmake --preset windows-debug        # o linux-debug / macos-debug / *-release
 cmake --build --preset windows-debug
 ctest --preset windows-debug
 ```
-Los binarios quedan en `build/<preset>/`. El test `env-check-smoke` abre `tools/env-check` en modo offscreen y falla si aparece algún warning de QML.
+Los binarios quedan en `build/<preset>/` y los plugins de providers en `build/<preset>/plugins/quarry/`. Los tests `env-check-smoke` y `quarry-smoke` arrancan las apps en modo offscreen y fallan si aparece algún warning de QML. Añade `-DQUARRY_WARNINGS_AS_ERRORS=ON` para compilar como la CI.
+
+### Dependencias (vcpkg)
+- `vcpkg.json` (modo manifiesto) fija las dependencias y el `builtin-baseline`. El primer `cmake --preset` las compila en `build/vcpkg_installed/`, compartido por todos los presets. En Windows tarda unos minutos; después se reutiliza la caché binaria de vcpkg (`%LOCALAPPDATA%\vcpkg\archives` o `~/.cache/vcpkg/archives`).
+- Los presets usan triplets propios (`x64-windows-quarry`, `x64-linux-quarry`, `arm64-osx-quarry`) que están en `vcpkg-overlays/triplets/`. Los ports `qtbase` y `qttools` de `vcpkg-overlays/ports/` son *shims* vacíos: así QtKeychain y KSyntaxHighlighting se compilan contra la Qt de aqt (`QT_ROOT_DIR`, que exporta `cmake/QtLocate.cmake`) y vcpkg no compila una segunda Qt. Detalles en ARCHITECTURE.md §9.
+- Para añadir una dependencia: inclúyela en `vcpkg.json` (requiere aprobación, ver CLAUDE.md). Si enlaza Qt, añade su nombre a la regex `PORT MATCHES` de los triplets.
 
 Para ejecutar a mano en Windows, Qt tiene que estar en el PATH (o hay que desplegar con `windeployqt`):
 ```powershell
