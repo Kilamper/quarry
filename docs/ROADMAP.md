@@ -31,7 +31,7 @@ Estados: `pendiente` · `en curso` · `hecho` · `bloqueado`
 - Targets: `quarry_provider_api` (INTERFACE), `quarry_core` (Qt6::Core), `quarry_provider_dummy` (MODULE de prueba), `quarry` (exe con una ventana vacía y el estilo Basic propio).
 - `cmake/QuarryHelpers.cmake`: `quarry_add_provider()`, `quarry_add_test()`, warnings estrictos (`/W4 /permissive-` · `-Wall -Wextra -Wpedantic`), warnings como error en la CI.
 - `.clang-format`, `.clang-tidy` (subconjunto razonable) y `.editorconfig`.
-- GitHub Actions `ci.yml`: matriz `windows-2022`, `macos-14` (arm64), `ubuntu-24.04`. Pasos: `scripts/setup.* --non-interactive` → `cmake --preset <os>-release` → build → `ctest`. Caché de aqt y de vcpkg (binary caching con `actions/cache`).
+- GitHub Actions `ci.yml`: matriz `windows-2022`, `macos-15` (arm64; `macos-14` ya retirada), `ubuntu-24.04`. Pasos: `scripts/setup.* --non-interactive` → `cmake --preset <os>-release` → build → `ctest`. Caché de aqt y de vcpkg (binary caching con `actions/cache`).
 - Repo privado en GitHub (`gh repo create`, **con confirmación antes del push**).
 
 **Criterios de aceptación**

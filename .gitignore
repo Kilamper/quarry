@@ -8,6 +8,9 @@ compile_commands.json
 
 # vcpkg (manifest mode)
 vcpkg_installed/
+# CI keeps its own vcpkg checkout and binary cache in the workspace
+.vcpkg-tool/
+.vcpkg-cache/
 
 # IDEs
 .vs/

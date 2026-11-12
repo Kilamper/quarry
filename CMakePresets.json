@@ -39,7 +39,7 @@
       "hidden": true,
       "inherits": "base",
       "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Darwin" },
-      "cacheVariables": { "QT_BASE_DIR": "$env{HOME}/Qt", "QT_ARCH_DIR": "macos", "VCPKG_TARGET_TRIPLET": "arm64-osx-quarry" }
+      "cacheVariables": { "QT_BASE_DIR": "$env{HOME}/Qt", "QT_ARCH_DIR": "macos", "VCPKG_TARGET_TRIPLET": "arm64-osx-quarry", "CMAKE_OSX_DEPLOYMENT_TARGET": "14.4" }
     },
     { "name": "windows-debug",   "inherits": "windows-base", "cacheVariables": { "CMAKE_BUILD_TYPE": "Debug" } },
     { "name": "windows-release", "inherits": "windows-base", "cacheVariables": { "CMAKE_BUILD_TYPE": "Release" } },

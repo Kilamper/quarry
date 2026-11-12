@@ -21,12 +21,13 @@ jobs:
       matrix:
         include:
           - { name: Windows, os: windows-2022, preset: windows-release, qt_dir: 'C:\Qt' }
-          - { name: macOS, os: macos-14, preset: macos-release, qt_dir: '~/Qt' }
+          - { name: macOS, os: macos-15, preset: macos-release, qt_dir: '~/Qt' }
           - { name: Linux, os: ubuntu-24.04, preset: linux-release, qt_dir: '~/Qt' }
     env:
       # Own vcpkg checkout: the image's copy may predate vcpkg.json's builtin-baseline.
-      VCPKG_ROOT: ${{ github.workspace }}/../vcpkg
-      VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/../vcpkg-cache,readwrite
+      # Inside the workspace (gitignored): upload-artifact rejects paths containing '..'.
+      VCPKG_ROOT: ${{ github.workspace }}/.vcpkg-tool
+      VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/.vcpkg-cache,readwrite
     steps:
       - uses: actions/checkout@v7
 
@@ -39,13 +40,13 @@ jobs:
       - name: Restore vcpkg binary cache
         uses: actions/cache@v6
         with:
-          path: ${{ github.workspace }}/../vcpkg-cache
+          path: ${{ github.workspace }}/.vcpkg-cache
           key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json', 'vcpkg-overlays/**', '.qt-version') }}
           restore-keys: vcpkg-${{ runner.os }}-
 
       - name: Create vcpkg cache dir
         shell: bash
-        run: mkdir -p "${{ github.workspace }}/../vcpkg-cache"
+        run: mkdir -p "${{ github.workspace }}/.vcpkg-cache"
 
       - name: Setup (Windows)
         if: runner.os == 'Windows'
@@ -88,7 +89,7 @@ jobs:
         with:
           name: vcpkg-logs-${{ runner.os }}
           path: |
-            ${{ github.workspace }}/../vcpkg/buildtrees/**/*.log
+            ${{ github.workspace }}/.vcpkg-tool/buildtrees/**/*.log
           if-no-files-found: ignore
 
   format:
