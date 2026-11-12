@@ -1,0 +1,8 @@
+{
+  "name": "qttools",
+  "version-string": "aqt",
+  "description": "Shim: Qt tools (lrelease, lupdate) come from aqtinstall. See docs/ARCHITECTURE.md section 9.",
+  "features": {
+    "linguist": { "description": "shim" }
+  }
+}

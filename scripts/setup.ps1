@@ -50,6 +50,14 @@ function Update-SessionPath {
 
 function Install-Winget([string]$Id, [string[]]$ExtraArgs = @()) {
     if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
+        # GitHub-hosted Windows runners ship Chocolatey but not winget.
+        $chocoIds = @{ 'Kitware.CMake' = 'cmake'; 'Ninja-build.Ninja' = 'ninja'; 'Git.Git' = 'git'; 'Python.Python.3.14' = 'python' }
+        if ((Get-Command choco -ErrorAction SilentlyContinue) -and $chocoIds.ContainsKey($Id)) {
+            & choco install $chocoIds[$Id] -y --no-progress
+            if ($LASTEXITCODE -ne 0) { throw "choco install $($chocoIds[$Id]) failed with exit code $LASTEXITCODE" }
+            Update-SessionPath
+            return
+        }
         throw "winget not found. Install 'App Installer' from the Microsoft Store and re-run."
     }
     $wingetArgs = @('install', '--id', $Id, '-e', '--source', 'winget',

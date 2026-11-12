@@ -1,0 +1,16 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "quarry",
+  "version": "0.0.1",
+  "builtin-baseline": "43930cd67eee1aac4e2becacdaf5f5bf62b3ed1e",
+  "dependencies": [
+    "libpq",
+    "qtkeychain-qt6",
+    "sqlite3",
+    "syntax-highlighting"
+  ],
+  "vcpkg-configuration": {
+    "overlay-ports": ["./vcpkg-overlays/ports"],
+    "overlay-triplets": ["./vcpkg-overlays/triplets"]
+  }
+}

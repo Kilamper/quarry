@@ -8,7 +8,10 @@
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/${presetName}",
       "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-      "cacheVariables": { "CMAKE_EXPORT_COMPILE_COMMANDS": "ON" }
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "VCPKG_INSTALLED_DIR": "${sourceDir}/build/vcpkg_installed"
+      }
     },
     {
       "name": "windows-base",
@@ -21,7 +24,7 @@
         "CMAKE_CXX_COMPILER": "cl",
         "QT_BASE_DIR": "C:/Qt",
         "QT_ARCH_DIR": "msvc2022_64",
-        "VCPKG_TARGET_TRIPLET": "x64-windows"
+        "VCPKG_TARGET_TRIPLET": "x64-windows-quarry"
       }
     },
     {
@@ -29,14 +32,14 @@
       "hidden": true,
       "inherits": "base",
       "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Linux" },
-      "cacheVariables": { "QT_BASE_DIR": "$env{HOME}/Qt", "QT_ARCH_DIR": "gcc_64" }
+      "cacheVariables": { "QT_BASE_DIR": "$env{HOME}/Qt", "QT_ARCH_DIR": "gcc_64", "VCPKG_TARGET_TRIPLET": "x64-linux-quarry" }
     },
     {
       "name": "macos-base",
       "hidden": true,
       "inherits": "base",
       "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Darwin" },
-      "cacheVariables": { "QT_BASE_DIR": "$env{HOME}/Qt", "QT_ARCH_DIR": "macos" }
+      "cacheVariables": { "QT_BASE_DIR": "$env{HOME}/Qt", "QT_ARCH_DIR": "macos", "VCPKG_TARGET_TRIPLET": "arm64-osx-quarry" }
     },
     { "name": "windows-debug",   "inherits": "windows-base", "cacheVariables": { "CMAKE_BUILD_TYPE": "Debug" } },
     { "name": "windows-release", "inherits": "windows-base", "cacheVariables": { "CMAKE_BUILD_TYPE": "Release" } },

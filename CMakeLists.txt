@@ -1,16 +1,22 @@
 cmake_minimum_required(VERSION 3.24)
 
-project(dbmanager VERSION 0.0.1 LANGUAGES CXX)
+# Before project(): exports QT_ROOT_DIR for the vcpkg manifest install (Qt shim ports).
+include(cmake/QtLocate.cmake)
+
+project(quarry VERSION 0.0.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-include(cmake/QtLocate.cmake)
-find_package(Qt6 ${DBM_QT_VERSION} EXACT REQUIRED COMPONENTS Quick)
-qt_standard_project_setup(REQUIRES ${DBM_QT_VERSION})
+find_package(Qt6 ${QUARRY_QT_VERSION} EXACT REQUIRED COMPONENTS Core Gui Qml Quick QuickControls2 Test)
+qt_standard_project_setup(REQUIRES ${QUARRY_QT_VERSION})
+
+include(cmake/QuarryHelpers.cmake)
 
 enable_testing()
 
-# The core/providers/app skeleton arrives in milestone 0; for now only the env check.
+add_subdirectory(src/core)
+add_subdirectory(src/app)
+add_subdirectory(tests)
 add_subdirectory(tools/env-check)

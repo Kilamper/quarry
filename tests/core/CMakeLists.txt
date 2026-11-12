@@ -1,0 +1,4 @@
+quarry_add_test(tst_provider_registry SOURCES tst_provider_registry.cpp LIBS quarry_core)
+target_compile_definitions(tst_provider_registry PRIVATE
+    QUARRY_TEST_PLUGIN_DIR="${QUARRY_TEST_PLUGIN_OUTPUT_DIR}")
+add_dependencies(tst_provider_registry quarry_provider_dummy quarry_provider_dummy_future)

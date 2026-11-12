@@ -1,0 +1,13 @@
+{
+  "name": "qtbase",
+  "version-string": "aqt",
+  "description": "Shim: Qt comes from aqtinstall (QT_ROOT_DIR), version pinned in .qt-version. See docs/ARCHITECTURE.md section 9.",
+  "features": {
+    "concurrent": { "description": "shim" },
+    "dbus": { "description": "shim" },
+    "gui": { "description": "shim" },
+    "network": { "description": "shim" },
+    "testlib": { "description": "shim" },
+    "widgets": { "description": "shim" }
+  }
+}
