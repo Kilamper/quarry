@@ -104,8 +104,8 @@ public:
         m_state->record();
         if (m_state->openDelayMs > 0)
             QThread::msleep(static_cast<unsigned long>(m_state->openDelayMs.load()));
-        if (m_state->openError)
-            return fail(*m_state->openError);
+        if (const std::optional<Error> e = m_state->openError)
+            return fail(*e);
         m_open = true;
         return ServerInfo { QStringLiteral("Fake"), QStringLiteral("1.0") };
     }
@@ -130,8 +130,8 @@ public:
         m_state->record();
         ++m_state->executeCalls;
         m_state->cancelRequested = false;
-        if (m_state->executeError)
-            return fail(*m_state->executeError);
+        if (const std::optional<Error> e = m_state->executeError)
+            return fail(*e);
         if (m_state->blockOnExecute) {
             m_state->inExecute = true;
             while (!token.isCancelled() && !m_state->cancelRequested)

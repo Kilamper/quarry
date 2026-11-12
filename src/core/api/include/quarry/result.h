@@ -9,6 +9,14 @@
 
 namespace quarry {
 
+namespace detail {
+// Wrong access is a programming error: fail loudly in release too (Q_ASSERT would vanish).
+[[noreturn]] inline void badAccess(const char *what)
+{
+    qFatal("quarry::Result misuse: %s", what);
+}
+} // namespace detail
+
 enum class ErrorKind : uint8_t {
     Connection,
     Authentication,
@@ -69,27 +77,32 @@ public:
 
     T &value() &
     {
-        Q_ASSERT_X(has_value(), "Result::value", "no value");
+        if (!has_value())
+            detail::badAccess("Result::value: no value");
         return *m_value;
     }
     const T &value() const &
     {
-        Q_ASSERT_X(has_value(), "Result::value", "no value");
+        if (!has_value())
+            detail::badAccess("Result::value: no value");
         return *m_value;
     }
     T &&value() &&
     {
-        Q_ASSERT_X(has_value(), "Result::value", "no value");
+        if (!has_value())
+            detail::badAccess("Result::value: no value");
         return std::move(*m_value);
     }
     const Error &error() const &
     {
-        Q_ASSERT_X(!has_value(), "Result::error", "no error");
+        if (has_value())
+            detail::badAccess("Result::error: no error");
         return m_error;
     }
     Error &&error() &&
     {
-        Q_ASSERT_X(!has_value(), "Result::error", "no error");
+        if (has_value())
+            detail::badAccess("Result::error: no error");
         return std::move(m_error);
     }
 
@@ -114,15 +127,21 @@ public:
 
     bool has_value() const noexcept { return !m_error.has_value(); }
     explicit operator bool() const noexcept { return has_value(); }
-    void value() const { Q_ASSERT_X(has_value(), "Result::value", "no value"); }
+    void value() const
+    {
+        if (!has_value())
+            detail::badAccess("Result::value: no value");
+    }
     const Error &error() const &
     {
-        Q_ASSERT_X(!has_value(), "Result::error", "no error");
+        if (has_value())
+            detail::badAccess("Result::error: no error");
         return *m_error;
     }
     Error &&error() &&
     {
-        Q_ASSERT_X(!has_value(), "Result::error", "no error");
+        if (has_value())
+            detail::badAccess("Result::error: no error");
         return std::move(*m_error);
     }
 

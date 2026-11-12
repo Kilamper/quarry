@@ -6,6 +6,7 @@ Checks: >
   clang-analyzer-*,
   -clang-analyzer-cplusplus.NewDeleteLeaks,
   performance-*,
+  -performance-enum-size,
   modernize-use-override,
   modernize-use-nullptr,
   modernize-use-equals-default,
@@ -14,6 +15,7 @@ Checks: >
   readability-redundant-smartptr-get,
   cppcoreguidelines-virtual-class-destructor
 # NewDeleteLeaks: false positives with Qt parent-child ownership.
+# enum-size: enum base types are part of the API (QFlags<Capability> grows); bytes saved are irrelevant.
 WarningsAsErrors: '*'
 HeaderFilterRegex: '.*/(src|tests)/.*'
 FormatStyle: file
