@@ -5,6 +5,11 @@ set(VCPKG_LIBRARY_LINKAGE dynamic)
 
 # Ports that link Qt build against the aqt install instead of a vcpkg-built Qt.
 set(VCPKG_ENV_PASSTHROUGH QT_ROOT_DIR)
+# SQLite is compiled into its plugin and into core (ARCHITECTURE.md section 8): static, like on Linux/macOS.
+if(PORT STREQUAL "sqlite3")
+    set(VCPKG_LIBRARY_LINKAGE static)
+endif()
+
 if(PORT MATCHES "^(qtkeychain-qt6|syntax-highlighting)$")
     set(VCPKG_LIBRARY_LINKAGE dynamic)  # Qt is shared (LGPL); keeps Qt resources/plugins sane
     set(VCPKG_CMAKE_CONFIGURE_OPTIONS "-DCMAKE_PREFIX_PATH=$ENV{QT_ROOT_DIR}")

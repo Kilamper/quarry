@@ -128,6 +128,8 @@ struct ResultBatch {
 }
 ```
 
+**Columnas heterogéneas** (decisión del 2026-11-12): un `ColumnBuffer` empieza tipado (solo el almacén de su tipo + bitmap de NULLs). Si llega un valor de otro tipo (en SQLite el tipo es por valor; también pasa con `UNION`, expresiones o columnas sin tipo declarado), el buffer pasa a **modo mixto**: reserva un vector de 1 byte por fila con el `ValueType` de cada celda y guarda cada valor en el almacén de su tipo (int64, double o bytes). No se pierde fidelidad (un BLOB sigue siendo BLOB) y solo cuesta +1 B/celda en las columnas mezcladas. `ColumnInfo::type` de una columna mixta vale `ValueType::Other`; el tipo real de cada celda se consulta con `ColumnBuffer::typeAt(row)`.
+
 Motivo: con 1 M de filas, un `QVariant` por celda costaría unos 16 B más una reserva de memoria por string. En columnas, un `int64` ocupa 8 B, y los textos van a una arena contigua con un offset de 4 B por celda. `ResultTableModel::data()` convierte solo las celdas visibles, y para eso consulta el `ValueFormatter` del dialecto.
 
 ## 4. Interfaz de provider
