@@ -1,0 +1,9 @@
+Quarry
+Copyright 2026 The Quarry authors
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+Quarry uses the Qt framework (https://www.qt.io), licensed under the GNU Lesser
+General Public License v3 (LGPLv3) and dynamically linked. Third-party library
+licenses are listed in the application's "About" dialog and in the
+distribution packages.
