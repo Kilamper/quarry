@@ -28,16 +28,16 @@ jobs:
       VCPKG_ROOT: ${{ github.workspace }}/../vcpkg
       VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/../vcpkg-cache,readwrite
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Restore Qt
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ${{ matrix.qt_dir }}
           key: qt-${{ runner.os }}-${{ hashFiles('.qt-version', 'scripts/requirements-aqt.txt') }}
 
       - name: Restore vcpkg binary cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ${{ github.workspace }}/../vcpkg-cache
           key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json', 'vcpkg-overlays/**', '.qt-version') }}
@@ -84,7 +84,7 @@ jobs:
 
       - name: Upload vcpkg logs on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: vcpkg-logs-${{ runner.os }}
           path: |
@@ -95,5 +95,5 @@ jobs:
     name: clang-format
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: git ls-files '*.h' '*.cpp' | xargs clang-format --dry-run --Werror
