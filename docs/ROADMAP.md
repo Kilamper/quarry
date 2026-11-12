@@ -7,7 +7,7 @@ Estados: `pendiente` · `en curso` · `hecho` · `bloqueado`
 | Hito | Contenido | Estado |
 |---|---|---|
 | F0 | Entorno de desarrollo (Windows verificado) | hecho |
-| H0 | Esqueleto + CI en los tres sistemas | en curso |
+| H0 | Esqueleto + CI en los tres sistemas | bloqueado (CI: facturación de la cuenta de GitHub) |
 | H1 | Versión mínima (subhitos 1.1–1.8) | pendiente |
 | H2 | Edición de datos | pendiente |
 | H3 | Autocompletado | pendiente |
@@ -35,11 +35,16 @@ Estados: `pendiente` · `en curso` · `hecho` · `bloqueado`
 - Repo privado en GitHub (`gh repo create`, **con confirmación antes del push**).
 
 **Criterios de aceptación**
-- [ ] `ctest --preset <os>-debug` pasa en local (Windows) y la CI está en verde en los tres sistemas.
-- [ ] Test: `ProviderRegistry` lista el plugin dummy por metadatos **sin cargarlo** (`QPluginLoader::isLoaded() == false`), y lo carga al pedir `provider("dummy")`.
-- [ ] Test de arquitectura: `quarry_core` no enlaza Qt6::Gui (se comprueba con `get_target_property` en CMake o con una inspección de las dependencias en un test).
-- [ ] `quarry --smoke` arranca y cierra con código 0 y sin warnings de QML en los tres sistemas (offscreen en Linux).
-- [ ] QtKeychain y KSyntaxHighlighting compilan con vcpkg contra Qt 6.12 de aqt (no aparece una segunda Qt en `vcpkg_installed`).
+- [~] `ctest --preset <os>-debug` pasa en local (Windows: 3/3 con `-DQUARRY_WARNINGS_AS_ERRORS=ON`). **CI sin ejecutar:** GitHub no arranca los jobs porque la cuenta tiene la facturación bloqueada ("The job was not started because your account is locked due to a billing issue").
+- [x] Test: `ProviderRegistry` lista el plugin dummy por metadatos sin cargarlo y lo carga al pedir `provider("dummy")` (`tst_provider_registry`, que además rechaza un plugin con API `/2`).
+- [x] Test de arquitectura: `quarry_assert_no_ui_deps()` hace fallar la configuración si `quarry_core` enlaza Gui/Qml/Quick/Widgets.
+- [~] `quarry --smoke` sale con 0 y sin warnings de QML en Windows (nativo y offscreen; la detección de warnings se comprobó inyectando uno, y sale con 2). macOS y Linux están pendientes de la CI.
+- [x] QtKeychain y KSyntaxHighlighting compilan con vcpkg contra Qt 6.12 de aqt (Windows). En `vcpkg_installed` solo está el shim vacío de `qtbase`, no una segunda Qt.
+
+**Desviaciones**
+- La carpeta local sigue llamándose `dbmanager`: no se pudo renombrar porque la sesión de trabajo la tenía abierta. Todo lo demás ya usa `quarry`.
+- El repo `Kilamper/quarry` es **público** (decisión del 2026-11-12, para intentar sortear el bloqueo de facturación; no funcionó). La historia se reescribió con el email noreply antes de publicarlo.
+- Triplet de Windows: se antepone `$QT_ROOT_DIR/bin` al PATH en los ports que usan Qt, porque `katehighlightingindexer` fallaba con `0xC0000135` (falta de DLL).
 
 ---
 
