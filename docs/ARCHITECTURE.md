@@ -16,6 +16,7 @@ Quarry es un gestor de bases de datos de escritorio, nativo y multiplataforma. S
 | Persistencia propia | SQLite de la app (`quarry.db`) para conexiones, historial y estado; preferencias simples en `QSettings` |
 | Idiomas | Textos fuente en inglés (`qsTr`/`tr`) + traducción al español (`.ts`) |
 | Estilo visual | Estilo propio sobre Qt Quick Controls **Basic**, con tokens de tema |
+| Iconos | Lucide (ISC) como fuente recortada; la copia original fijada está en `third_party/lucide/` (lucide-static 1.72.0) |
 | Telemetría | Ninguna. Sin conexiones salientes salvo las que el usuario abre hacia sus bases de datos |
 | Dependencias | vcpkg (manifiesto). Las librerías que dependen de Qt (QtKeychain, KSyntaxHighlighting) se compilan contra la Qt de aqt con overlay ports *shim* (§9) |
 

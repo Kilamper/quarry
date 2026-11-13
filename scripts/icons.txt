@@ -1,0 +1,48 @@
+# Lucide icon names used by Quarry (https://lucide.dev/icons). One per line.
+# After editing: python scripts/subset_icons.py, then commit the generated font and Icons.qml.
+
+# Shell / navigation
+panel-left
+panel-bottom
+search
+command
+settings
+x
+plus
+chevron-right
+chevron-down
+ellipsis
+
+# Connections / schema tree (H1.3-H1.4)
+database
+server
+folder
+folder-open
+table
+eye
+columns-3
+key-round
+link
+list-tree
+plug
+unplug
+
+# Editor / execution (H1.5-H1.6)
+play
+square
+file-code
+history
+
+# Status and feedback (always paired with text)
+info
+circle-alert
+triangle-alert
+circle-check
+loader-circle
+shield-alert
+
+# Theme
+sun
+moon
+contrast
+monitor
