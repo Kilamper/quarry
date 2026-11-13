@@ -1,2 +1,4 @@
 add_subdirectory(providers/dummy)
+add_subdirectory(providers/conformance)
+add_subdirectory(providers/sqlite)
 add_subdirectory(core)

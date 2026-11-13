@@ -21,6 +21,8 @@ include(cmake/QuarryHelpers.cmake)
 enable_testing()
 
 add_subdirectory(src/core)
+add_subdirectory(src/providers)
 add_subdirectory(src/app)
 add_subdirectory(tests)
 add_subdirectory(tools/env-check)
+add_subdirectory(tools/bench)

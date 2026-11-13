@@ -8,7 +8,7 @@ Estados: `pendiente` · `en curso` · `hecho` · `bloqueado`
 |---|---|---|
 | F0 | Entorno de desarrollo (Windows verificado) | hecho |
 | H0 | Esqueleto + CI en los tres sistemas | hecho (2026-11-12) |
-| H1 | Versión mínima (subhitos 1.1–1.8) | pendiente |
+| H1 | Versión mínima (subhitos 1.1–1.8) | en curso (1.1 hecho) |
 | H2 | Edición de datos | pendiente |
 | H3 | Autocompletado | pendiente |
 | H4 | Historial y consultas guardadas | pendiente |
@@ -54,17 +54,18 @@ Estados: `pendiente` · `en curso` · `hecho` · `bloqueado`
 
 Se divide en subhitos y cada uno se puede revisar por separado. Al final de H1, el usuario puede conectarse a SQLite y PostgreSQL, explorar el esquema, escribir SQL con resaltado, ejecutarlo de forma asíncrona y cancelable, y ver millones de filas sin que la UI se bloquee.
 
-### H1.1 — Núcleo de ejecución + provider SQLite
+### H1.1 — Núcleo de ejecución + provider SQLite · **hecho (2026-11-13)**
 - `Result<T>`, `Error`, `CancellationToken`, `ResultBatch`/`ColumnBuffer`, interfaces de provider (ARCHITECTURE §3–4).
 - `SessionWorker` / `SessionManager` (§5), señales `columnsReady`/`batchReady`/`finished`/`failed`.
 - Provider SQLite: abrir archivo y `:memory:`, `children()` (tablas, vistas, columnas, índices, FKs), streaming, `sqlite3_interrupt`, dialecto con `splitStatements`.
 - Suite de conformidad de providers (`tests/providers/conformance/`).
 
 Criterios:
-- [ ] Conformidad SQLite en verde: tipos, NULLs, 0 filas, varios statements, errores con `position`.
-- [ ] Cancelar un `WITH RECURSIVE` infinito devuelve `Cancelled` en < 200 ms.
-- [ ] `SELECT` de 1 M de filas en batches de 500 sin bloquear el hilo llamante (test con `QSignalSpy`, y el hilo principal procesa eventos durante el streaming).
-- [ ] Bench: el núcleo procesa 1 M filas × 10 columnas en ≤ 1,5 s, con ≤ 200 MB de RSS (PERFORMANCE.md).
+- [x] Conformidad SQLite en verde (`tst_sqlite_provider`: 18 casos de conformidad + 17 específicos): tipos, NULLs, 0 filas, columnas mixtas, parámetros, errores con `position` (también tras caracteres no ASCII), `splitStatements` (comentarios, comillas, triggers). `execute` rechaza varias sentencias con `Unsupported`.
+- [x] Cancelar un `WITH RECURSIVE` infinito devuelve `Cancelled` en < 200 ms y la conexión sigue usable. Una cancelación tardía con la sesión inactiva no aborta la siguiente sentencia.
+- [x] `SELECT` de 1 M de filas en batches de 500 a través de `Session` y el plugin real: el hilo principal sigue procesando eventos (hueco máximo de 5 ms). Tarda 289 ms en Release.
+- [x] Bench (`bench_core`, Release, máquina de referencia): **442 ms** (2,26 M filas/s) y **17 MB** de pico de RSS, frente a ≤ 1,5 s y ≤ 200 MB. Los batches se descartan al leerlos; la RAM con 1 M filas cargadas se mide en H1.7.
+- Sin probar: SQLite con la base bloqueada por otra conexión (la traducción a `Timeout`) ni conexiones concurrentes. KSyntaxHighlighting no tiene definición específica de SQLite; se usa "SQL".
 
 ### H1.2 — Shell de la aplicación, tema y componentes base
 - Ventana principal: barra lateral, área de pestañas, panel de resultados y barra de estado (UX.md §3).

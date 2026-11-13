@@ -273,7 +273,9 @@ Prueba de conexión = `createConnection()` + `open()` + `close()`, con un timeou
 **Ajustes de implementación (H1.1):** el código manda; esto resume en qué se aparta de las firmas de arriba.
 - `ObjectKind`/`ObjectPath` están en `object_path.h` (los usan tanto `ColumnInfo` como la API de provider). `Capabilities` es `QFlags<Capability>`.
 - `ColumnBuffer` guarda int64, bool y double en el mismo slot de 8 bytes (el double como patrón de bits), así que el modo mixto solo añade la etiqueta de 1 B por fila. `appendBytes()` devuelve `false` y guarda NULL si la arena del batch superase 4 GiB.
-- Los errores se devuelven con `quarry::fail(Error)`.
+- Los errores se devuelven con `quarry::fail(Error)`. Un acceso indebido a `Result` (p. ej. `value()` sin valor) termina con `qFatal`, también en release.
+- **`splitStatements`:** devuelve rangos semiabiertos `[begin, end)` en unidades UTF-16 sobre el texto original, sin espacios alrededor y **sin el `;` final**. Las sentencias vacías o que solo tienen comentarios se descartan. Todos los providers siguen esta convención (`tests/providers/conformance`).
+- Una columna sin tipo declarado (expresiones, `UNION`) tiene `ColumnInfo::type == ValueType::Other`. En SQLite, `DECIMAL`/`NUMERIC` llegan siempre como texto exacto.
 - **Contrato de cancelación:** `requestCancel()` es thread-safe y afecta solo a la llamada en curso. Cada `open/children/describe/execute/fetch` descarta al empezar cualquier cancelación pendiente, para que una cancelación tardía nunca aborte la sentencia siguiente.
 - **`Session`:** `open()` y `execute()` se pueden encadenar. El `execute` espera en cola a que acabe la apertura y, si la apertura falla, termina con `failed()` ("The connection is not open."). Un `execute` nuevo cancela el `execute`/`fetchMore` en curso, pero nunca la apertura. `fetchMore` se ignora si la sesión está ocupada, y `cancel()` con la sesión inactiva no toca la conexión. `ExecutionStats` acumula tiempo y filas entre `execute` y los `fetchMore` siguientes.
 

@@ -1,0 +1,1 @@
+{"id":"sqlite","name":"SQLite","version":"0.1.0","apiVersion":1,"fileExtensions":["sqlite","sqlite3","db","db3"],"urlSchemes":["sqlite"],"capabilities":["multipleDatabases","transactions","cancel","explain"]}
