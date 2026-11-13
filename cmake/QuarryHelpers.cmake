@@ -61,5 +61,7 @@ function(quarry_add_test name)
     add_test(NAME ${name} COMMAND ${name})
     set_tests_properties(${name} PROPERTIES
         TIMEOUT 60
-        ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>;QT_QPA_PLATFORM=set:offscreen")
+        # LD_LIBRARY_PATH: vcpkg's shared Qt-based libs (QtKeychain needs Qt6DBus) carry a RUNPATH
+        # without the aqt Qt dir; GUI-less test executables would not find libQt6DBus otherwise.
+        ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>;LD_LIBRARY_PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>;QT_QPA_PLATFORM=set:offscreen")
 endfunction()
