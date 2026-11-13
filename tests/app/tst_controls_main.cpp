@@ -17,6 +17,8 @@ public slots:
         QSettings::setDefaultFormat(QSettings::IniFormat);
         QSettings::setPath(QSettings::IniFormat, QSettings::UserScope, m_dir.path());
         QGuiApplication::styleHints()->setTabFocusBehavior(Qt::TabFocusAllControls);
+        // The tests read English strings whatever the language of the machine running them.
+        QSettings().setValue(QStringLiteral("ui/language"), QStringLiteral("English"));
     }
 
 private:

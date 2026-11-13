@@ -1,3 +1,5 @@
+quarry_add_test(tst_command_registry SOURCES tst_command_registry.cpp LIBS quarry_ui)
+quarry_add_test(tst_language_manager SOURCES tst_language_manager.cpp LIBS quarry_ui)
 quarry_add_test(tst_theme_contrast SOURCES tst_theme_contrast.cpp LIBS quarry_ui)
 quarry_add_test(tst_theme_manager SOURCES tst_theme_manager.cpp LIBS quarry_ui)
 

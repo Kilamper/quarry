@@ -11,6 +11,14 @@ T.SplitView {
     // Name read by screen readers for every handle of this view ("Resize sidebar").
     property string accessibleName: qsTr("Resize panels")
 
+    // Emitted once a resize is finished: handle released, or a key press applied.
+    signal resized
+
+    onResizingChanged: {
+        if (!resizing)
+            resized();
+    }
+
     function resizeAt(handleItem, delta) {
         const horizontal = orientation === Qt.Horizontal;
         const pos = horizontal ? handleItem.x : handleItem.y;
@@ -37,6 +45,7 @@ T.SplitView {
             attached.preferredWidth = size;
         else
             attached.preferredHeight = size;
+        resized();
     }
 
     handle: Rectangle {

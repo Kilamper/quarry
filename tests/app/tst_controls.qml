@@ -15,40 +15,20 @@ TestCase {
 
     // ---- helpers -----------------------------------------------------------------------------
 
-    // Every visible item reachable by Tab must have a role and a non-empty name.
+    A11y {
+        id: walker
+    }
+
     function a11yProblems(root) {
-        const problems = [];
-        const walk = item => {
-            if (item.visible && item.activeFocusOnTab) {
-                if (!item.Accessible.name)
-                    problems.push(item + " has no Accessible.name");
-                if (item.Accessible.role === Accessible.NoRole)
-                    problems.push(item + " has Accessible.NoRole");
-            }
-            for (let i = 0; i < item.children.length; ++i)
-                walk(item.children[i]);
-        };
-        walk(root);
-        return problems;
+        return walker.problems(root);
     }
 
     function findAll(root, pred) {
-        const out = [];
-        const walk = item => {
-            if (pred(item))
-                out.push(item);
-            for (let i = 0; i < item.children.length; ++i)
-                walk(item.children[i]);
-        };
-        walk(root);
-        return out;
+        return walker.findAll(root, pred);
     }
 
     function isInside(item, ancestor) {
-        for (let p = item; p; p = p.parent)
-            if (p === ancestor)
-                return true;
-        return false;
+        return walker.isInside(item, ancestor);
     }
 
     function focusRingOf(control) {
@@ -262,7 +242,6 @@ TestCase {
         const win = comp.createObject(null);
         verify(win !== null);
         compare(a11yProblems(win.contentItem), []);
-        verify(findAll(win.contentItem, i => i.Accessible.role === Accessible.Heading).length === 1);
         win.destroy();
     }
 

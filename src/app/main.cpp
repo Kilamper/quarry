@@ -1,9 +1,13 @@
+#include "ui/language_manager.h"
+
 #include <quarry/provider_registry.h>
 
+#include <QElapsedTimer>
 #include <QGuiApplication>
 #include <QLoggingCategory>
 #include <QQmlApplicationEngine>
 #include <QQmlError>
+#include <QQuickWindow>
 #include <QStyleHints>
 #include <QTimer>
 
@@ -13,6 +17,8 @@ Q_LOGGING_CATEGORY(lcApp, "quarry.app")
 
 int main(int argc, char *argv[])
 {
+    QElapsedTimer sinceStart; // for --bench-startup; started before anything else
+    sinceStart.start();
     QGuiApplication app(argc, argv);
     QCoreApplication::setOrganizationName(QStringLiteral("Quarry"));
     QCoreApplication::setOrganizationDomain(QStringLiteral("quarry.dev"));
@@ -23,11 +29,15 @@ int main(int argc, char *argv[])
     QGuiApplication::styleHints()->setTabFocusBehavior(Qt::TabFocusAllControls);
 
     const bool smoke = app.arguments().contains(QStringLiteral("--smoke"));
+    const bool bench = app.arguments().contains(QStringLiteral("--bench-startup"));
 
     // shortcut: synchronous scan on the UI thread, move to a worker when plugins are numerous (H1).
     quarry::ProviderRegistry registry;
     registry.scan(quarry::ProviderRegistry::defaultPluginDirectory());
     qCInfo(lcApp) << "Providers available:" << registry.available().size();
+
+    // Before the engine: the first frame is already translated. The engine reuses this instance.
+    quarry::ui::LanguageManager language(nullptr);
 
     QQmlApplicationEngine engine;
     QObject::connect(
@@ -49,6 +59,23 @@ int main(int argc, char *argv[])
     engine.loadFromModule("Quarry", "Main");
     if (engine.rootObjects().isEmpty())
         return 1;
+
+    if (bench) {
+        // Metric for docs/PERFORMANCE.md §2: process start (main) to the first presented frame.
+        auto *window = qobject_cast<QQuickWindow *>(engine.rootObjects().constFirst());
+        if (window == nullptr)
+            return 1;
+        QObject::connect(
+            window, &QQuickWindow::frameSwapped, &app,
+            [&sinceStart, &app] {
+                std::printf("{\"metric\":\"startup_first_frame_ms\",\"value\":%lld}\n",
+                            static_cast<long long>(sinceStart.elapsed()));
+                std::fflush(stdout);
+                app.quit();
+            },
+            Qt::SingleShotConnection);
+        QTimer::singleShot(10000, &app, &QCoreApplication::quit); // never hang a CI job
+    }
 
     if (smoke)
         QTimer::singleShot(500, &app, &QCoreApplication::quit);

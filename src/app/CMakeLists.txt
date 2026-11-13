@@ -35,6 +35,14 @@ qt_add_qml_module(quarry_ui
     VERSION 1.0
     OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Quarry/Controls
     SOURCES
+        ui/command.cpp
+        ui/command.h
+        ui/command_registry.cpp
+        ui/command_registry.h
+        ui/language_manager.cpp
+        ui/language_manager.h
+        ui/layout_store.cpp
+        ui/layout_store.h
         ui/theme_manager.cpp
         ui/theme_manager.h
         ui/theme_tokens.cpp
@@ -49,20 +57,39 @@ qt_add_qml_module(quarry_ui
 # ui/ too: the generated QML registration code includes the headers by bare file name.
 target_include_directories(quarry_ui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/ui)
 target_link_libraries(quarry_ui PUBLIC Qt6::Gui Qt6::Qml Qt6::Quick)
-quarry_app_warnings(ui/theme_manager.cpp ui/theme_tokens.cpp)
+quarry_app_warnings(
+    ui/command.cpp ui/command_registry.cpp ui/language_manager.cpp ui/layout_store.cpp
+    ui/theme_manager.cpp ui/theme_tokens.cpp)
 
 qt_add_executable(quarry main.cpp)
 
 qt_add_qml_module(quarry
     URI Quarry
     VERSION 1.0
-    QML_FILES qml/Main.qml
-    DEPENDENCIES QtQuick QtQuick.Controls.Basic QtQuick.Layouts Quarry.Controls
+    QML_FILES
+        qml/Main.qml
+        qml/MainWindow.qml
+        qml/CommandPalette.qml
+        qml/SettingsDialog.qml
+        qml/EmptyState.qml
+        qml/Region.qml
+    DEPENDENCIES QtQuick QtQuick.Controls.Basic QtQuick.Layouts QtQml Quarry.Controls
 )
 
 target_link_libraries(quarry PRIVATE quarry_core quarry_ui quarry_uiplugin Qt6::Quick Qt6::QuickControls2)
 quarry_app_warnings(main.cpp)
 set_target_properties(quarry PROPERTIES WIN32_EXECUTABLE ON)
+
+# Spanish UI strings. The .qm files are generated into the build tree and embedded as
+# :/i18n/quarry_es.qm (loaded by LanguageManager); only the .ts is versioned.
+# After changing any visible string: cmake --build <dir> --target update_translations
+find_package(Qt6 REQUIRED COMPONENTS LinguistTools)
+qt_add_translations(quarry_ui
+    SOURCE_TARGETS quarry quarry_ui
+    TS_FILES i18n/quarry_es.ts
+    RESOURCE_PREFIX /i18n
+    LUPDATE_OPTIONS -locations none
+    NO_GENERATE_PLURALS_TS_FILE)
 
 # Used by the SQL editor in milestone 1.5; resolved now to prove the Qt shim wiring.
 find_package(KF6SyntaxHighlighting CONFIG REQUIRED)

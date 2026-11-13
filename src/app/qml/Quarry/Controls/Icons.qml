@@ -19,6 +19,8 @@ QtObject {
     readonly property string check: "\ue06c"
     readonly property string minus: "\ue11c"
     readonly property string ellipsis: "\ue0b6"
+    readonly property string menu: "\ue115"
+    readonly property string rotateCcw: "\ue148"
     readonly property string database: "\ue0ad"
     readonly property string server: "\ue153"
     readonly property string folder: "\ue0d7"

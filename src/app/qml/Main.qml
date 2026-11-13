@@ -1,11 +1,12 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls.Basic
-import QtQuick.Layouts
 import Quarry.Controls
 
 ApplicationWindow {
     id: root
+
+    readonly property alias shell: shell
 
     width: 1100
     height: 720
@@ -16,29 +17,9 @@ ApplicationWindow {
     color: Theme.bgCanvas
     font.pointSize: Theme.fontSize
 
-    ColumnLayout {
-        id: welcome
+    MainWindow {
+        id: shell
 
-        anchors.centerIn: parent
-        width: Math.min(parent.width - Theme.controlHeight, Theme.controlHeight * 16)
-        spacing: Theme.controlHeight / 2
-
-        Accessible.role: Accessible.Pane
-        Accessible.name: qsTr("Welcome")
-
-        Heading {
-            Layout.fillWidth: true
-            text: qsTr("Welcome to Quarry")
-            horizontalAlignment: Text.AlignHCenter
-        }
-
-        Text {
-            Layout.fillWidth: true
-            text: qsTr("Connections and the SQL editor arrive in the next milestone.")
-            font: root.font
-            color: Theme.fgDefault
-            horizontalAlignment: Text.AlignHCenter
-            wrapMode: Text.WordWrap
-        }
+        anchors.fill: parent
     }
 }
