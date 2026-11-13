@@ -29,9 +29,13 @@ public:
     void open(const CancellationToken &token);
     void execute(const Statement &statement, const CancellationToken &token);
     void fetchMore(qsizetype maxRows, const CancellationToken &token);
+    void children(quint64 requestId, const ObjectPath &parent, const CancellationToken &token);
     void close();
 
 signals:
+    void childrenReady(quint64 requestId, quarry::ObjectPath parent,
+                       std::vector<quarry::SchemaNode> nodes);
+    void childrenFailed(quint64 requestId, quarry::ObjectPath parent, quarry::Error error);
     void opened(quarry::ServerInfo info);
     void started();
     void columnsReady(std::vector<quarry::ColumnInfo> columns);

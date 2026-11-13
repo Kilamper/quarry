@@ -131,6 +131,38 @@ void SessionWorker::fetchBatch(qsizetype maxRows, const CancellationToken &token
     emit finished(std::move(stats));
 }
 
+void SessionWorker::children(quint64 requestId, const ObjectPath &parent,
+                             const CancellationToken &token)
+{
+    // Not an execute: m_execRunning stays false so a new execute() never interrupts this call.
+    auto failWith = [&](Error error) {
+        endOperation();
+        emit childrenFailed(requestId, parent, std::move(error));
+    };
+    const Error cancelledError {
+        ErrorKind::Cancelled, tr("The operation was cancelled."), {}, {}, {}
+    };
+    if (token.isCancelled()) {
+        failWith(cancelledError);
+        return;
+    }
+    if (!m_connection->isOpen()) {
+        failWith(Error { ErrorKind::Connection, tr("The connection is not open."), {}, {}, {} });
+        return;
+    }
+    auto result = m_connection->children(parent, token);
+    if (!result) {
+        failWith(std::move(result).error());
+        return;
+    }
+    if (token.isCancelled()) { // cancelled while the provider was finishing: honour the contract
+        failWith(cancelledError);
+        return;
+    }
+    endOperation();
+    emit childrenReady(requestId, parent, std::move(result).value());
+}
+
 void SessionWorker::close()
 {
     m_stream.reset();

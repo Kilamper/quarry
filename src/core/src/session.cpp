@@ -23,6 +23,8 @@ void registerMetaTypes()
         qRegisterMetaType<std::vector<quarry::ColumnInfo>>();
         qRegisterMetaType<std::shared_ptr<const quarry::ResultBatch>>();
         qRegisterMetaType<quarry::Statement>();
+        qRegisterMetaType<quarry::ObjectPath>();
+        qRegisterMetaType<std::vector<quarry::SchemaNode>>();
         return true;
     }();
     Q_UNUSED(done)
@@ -54,6 +56,8 @@ Session::Session(std::unique_ptr<IConnection> connection, QObject *parent)
     connect(m_worker, &SessionWorker::failed, this, &Session::failed, q);
     connect(m_worker, &SessionWorker::cancelled, this, &Session::cancelled, q);
     connect(m_worker, &SessionWorker::closed, this, &Session::closed, q);
+    connect(m_worker, &SessionWorker::childrenReady, this, &Session::childrenReady, q);
+    connect(m_worker, &SessionWorker::childrenFailed, this, &Session::childrenFailed, q);
     m_thread->start();
 }
 
@@ -104,12 +108,22 @@ void Session::fetchMore(qsizetype maxRows)
     post([w = m_worker, maxRows, token] { w->fetchMore(maxRows, token); });
 }
 
+quint64 Session::children(const ObjectPath &parent)
+{
+    const quint64 id = ++m_lastRequestId;
+    const auto token = m_metaSource.token();
+    post([w = m_worker, id, parent, token] { w->children(id, parent, token); });
+    return id;
+}
+
 void Session::cancel()
 {
     if (m_inflight->load() == 0)
         return; // idle: a stale requestCancel() could abort the next statement
     m_openSource.cancel();
     m_execSource.cancel();
+    m_metaSource.cancel();
+    m_metaSource = CancellationSource(); // later children() requests must not start cancelled
     m_connection->requestCancel();
 }
 

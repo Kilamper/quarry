@@ -126,6 +126,37 @@ bool ProviderRegistry::isLoaded(const QString &id) const
     return it != m_slots.end() && it->second.provider != nullptr;
 }
 
+Result<std::unique_ptr<IConnection>>
+ProviderRegistry::createConnection(const ConnectionProfile &profile, const Secrets &secrets)
+{
+    // Not a QObject: literal translate() calls (lupdate-visible) with the context that
+    // ConnectionTester used before the extraction.
+    QString message;
+    IDatabaseProvider *found = provider(profile.providerId, &message);
+    if (!found)
+        return fail(Error { ErrorKind::NotFound,
+                            QCoreApplication::translate("quarry::ConnectionTester",
+                                                        "This database engine is not available."),
+                            message,
+                            {},
+                            {} });
+    ConnectionConfig config;
+    config.id = profile.id;
+    config.values = profile.values;
+    std::unique_ptr<IConnection> connection = found->createConnection(config, secrets);
+    if (!connection)
+        return fail(
+            Error { ErrorKind::Internal,
+                    QCoreApplication::translate("quarry::ConnectionTester",
+                                                "Could not prepare the connection."),
+                    QCoreApplication::translate("quarry::ConnectionTester",
+                                                "The provider \"%1\" returned no connection.")
+                        .arg(profile.providerId),
+                    {},
+                    {} });
+    return connection;
+}
+
 QString ProviderRegistry::defaultPluginDirectory()
 {
     const QString exeDir = QCoreApplication::applicationDirPath();

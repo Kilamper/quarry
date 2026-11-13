@@ -53,27 +53,13 @@ void ConnectionTester::test(const ConnectionProfile &profile, const Secrets &sec
         });
     };
 
-    QString message;
-    IDatabaseProvider *provider = m_registry.provider(profile.providerId, &message);
-    if (!provider) {
-        failLater(
-            { ErrorKind::NotFound, tr("This database engine is not available."), message, {}, {} });
-        return;
-    }
-    ConnectionConfig config;
-    config.id = profile.id;
-    config.values = profile.values;
-    std::unique_ptr<IConnection> connection = provider->createConnection(config, secrets);
+    auto connection = m_registry.createConnection(profile, secrets);
     if (!connection) {
-        failLater({ ErrorKind::Internal,
-                    tr("Could not prepare the connection."),
-                    tr("The provider \"%1\" returned no connection.").arg(profile.providerId),
-                    {},
-                    {} });
+        failLater(std::move(connection).error());
         return;
     }
 
-    m_session = new Session(std::move(connection), this);
+    m_session = new Session(std::move(connection).value(), this);
     connect(m_session, &Session::opened, this, [this](const ServerInfo &info) {
         Session *session = m_session;
         m_session = nullptr; // detach: it closes itself and is deleted when done

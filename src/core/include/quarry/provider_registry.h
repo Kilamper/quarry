@@ -1,6 +1,8 @@
 #pragma once
 
+#include <quarry/connection_profile.h>
 #include <quarry/provider_api.h>
+#include <quarry/result.h>
 
 #include <QPluginLoader>
 #include <QString>
@@ -44,6 +46,12 @@ public:
     // Loads the plugin on first use and caches the provider. Returns nullptr on failure.
     IDatabaseProvider *provider(const QString &id, QString *errorMessage = nullptr);
     bool isLoaded(const QString &id) const;
+
+    // Loads the plugin if needed and creates an unopened connection for the profile.
+    // Errors: NotFound (engine unavailable, detail = loader message), Internal (provider
+    // returned no connection).
+    Result<std::unique_ptr<IConnection>> createConnection(const ConnectionProfile &profile,
+                                                          const Secrets &secrets);
 
     static QString defaultPluginDirectory();
 

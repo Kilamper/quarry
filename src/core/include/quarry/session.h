@@ -49,6 +49,13 @@ public slots:
     void execute(const quarry::Statement &statement);
     // Next batch of the current result. Ignored while another operation is running.
     void fetchMore(qsizetype maxRows);
+    // Direct children of `parent` (IConnection::children), for the lazy schema tree. Returns an
+    // id > 0, unique per Session; the answer arrives as childrenReady/childrenFailed with it.
+    // Queued in order with the other operations; does NOT cancel a running execute. Called before
+    // open() finishes it runs after it; if the open failed (or never happened) it fails with
+    // "The connection is not open.". cancel() and close() end every pending or running request
+    // with childrenFailed(ErrorKind::Cancelled), exactly once per request.
+    quint64 children(const quarry::ObjectPath &parent);
     // Cancels the tokens of all queued/running operations and, if something is running, calls
     // requestCancel() directly from the calling thread. Idle session: does nothing at all
     // (requestCancel() is not called, no signal is emitted).
@@ -65,6 +72,9 @@ signals:
     void failed(quarry::Error error);
     void cancelled();
     void closed();
+    void childrenReady(quint64 requestId, quarry::ObjectPath parent,
+                       std::vector<quarry::SchemaNode> nodes);
+    void childrenFailed(quint64 requestId, quarry::ObjectPath parent, quarry::Error error);
 
 private:
     template<typename F> void post(F &&task);
@@ -74,6 +84,8 @@ private:
     IConnection *m_connection = nullptr; // owned by m_worker; only for requestCancel()
     CancellationSource m_openSource; // token of the latest open()
     CancellationSource m_execSource; // token of the latest execute()/fetchMore()
+    CancellationSource m_metaSource; // shared by the children() requests since the last cancel()
+    quint64 m_lastRequestId = 0;
     std::shared_ptr<std::atomic<bool>> m_execRunning; // execute/fetch is inside the provider
     std::shared_ptr<std::atomic<int>> m_inflight; // operations queued or running
 };
@@ -86,3 +98,5 @@ Q_DECLARE_METATYPE(quarry::ExecutionStats)
 Q_DECLARE_METATYPE(std::vector<quarry::ColumnInfo>)
 Q_DECLARE_METATYPE(std::shared_ptr<const quarry::ResultBatch>)
 Q_DECLARE_METATYPE(quarry::Statement)
+Q_DECLARE_METATYPE(quarry::ObjectPath)
+Q_DECLARE_METATYPE(std::vector<quarry::SchemaNode>)

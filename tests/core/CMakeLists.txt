@@ -13,3 +13,6 @@ target_compile_definitions(tst_connection_tester PRIVATE
     QUARRY_PLUGIN_DIR="${QUARRY_PLUGIN_OUTPUT_DIR}"
     QUARRY_SLOW_PLUGIN_DIR="${QUARRY_SLOW_PLUGIN_OUTPUT_DIR}")
 add_dependencies(tst_connection_tester quarry_provider_sqlite quarry_provider_slow)
+quarry_add_test(tst_schema_children SOURCES tst_schema_children.cpp LIBS quarry_core unofficial::sqlite3::sqlite3)
+target_compile_definitions(tst_schema_children PRIVATE QUARRY_PLUGIN_DIR="${QUARRY_PLUGIN_OUTPUT_DIR}")
+add_dependencies(tst_schema_children quarry_provider_sqlite)
