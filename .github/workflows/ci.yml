@@ -70,12 +70,21 @@ jobs:
           ctest --preset ${{ matrix.preset }}
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
 
+      - name: Install a headless keyring (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get install -y --no-install-recommends gnome-keyring dbus-x11
+
       - name: Configure, build, test (macOS / Linux)
         if: runner.os != 'Windows'
         run: |
           cmake --preset ${{ matrix.preset }} -DQUARRY_WARNINGS_AS_ERRORS=ON
           cmake --build --preset ${{ matrix.preset }}
-          ctest --preset ${{ matrix.preset }}
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            # Real Secret Service for the keychain tests: unlocked gnome-keyring in a private D-Bus session.
+            dbus-run-session -- bash -c 'echo ci | gnome-keyring-daemon --unlock --components=secrets >/dev/null && QUARRY_TEST_KEYCHAIN=1 ctest --preset ${{ matrix.preset }}'
+          else
+            ctest --preset ${{ matrix.preset }}
+          fi
 
       - name: clang-tidy
         if: runner.os == 'Linux'

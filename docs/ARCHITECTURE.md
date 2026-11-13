@@ -380,6 +380,63 @@ Cancel button ── directo ──────────▶ IConnection::requ
 - Ruta: `QStandardPaths::AppDataLocation/quarry.db`. Modo WAL. Migraciones con `PRAGMA user_version`, aplicadas en el arranque dentro de una transacción.
 - Tablas iniciales: `connections`, `connection_folders`, `query_history` (con FTS5 en su hito), `saved_queries`, `ui_state` (pestañas abiertas, tamaño de paneles).
 - Se accede desde un hilo de `core` propio. La UI nunca espera a disco en el arranque: carga la lista de conexiones de forma asíncrona y muestra el estado vacío o la lista cuando llega, normalmente en < 10 ms.
+- Cada hito crea solo las tablas que usa. H1.3 crea `connections` (migración 1). El resto llega con su hito.
+
+### 11.1 Contrato de conexiones y credenciales (H1.3)
+
+Contrato compartido entre `core` (backend) y `app` (frontend). Las cabeceras viven en `src/core/include/quarry/`. Todas las clases son QObject del hilo de UI con API **asíncrona**: el trabajo de disco y llavero va a un hilo de `core` y los resultados llegan por señales con `Qt::QueuedConnection`. Los errores son `quarry::Error` con `message` en lenguaje claro y `detail` técnico.
+
+```cpp
+namespace quarry {
+enum class PasswordMode : uint8_t { None, Saved, AskEveryTime };
+
+struct ConnectionProfile {
+    QUuid id;                       // generado al crear
+    QString name;                   // obligatorio y no vacío (lo valida ConnectionStore)
+    QString providerId;             // "sqlite", "postgres"…
+    QVariantMap values;             // campos de connectionFields() SIN secretos
+    int colorIndex = -1;            // -1 = sin color; 0..7 = paleta de UX §6
+    bool production = false;
+    PasswordMode passwordMode = PasswordMode::None;
+    QDateTime createdAt, updatedAt; // UTC, los fija ConnectionStore
+    std::optional<QDateTime> lastUsedAt;
+};
+
+class ConnectionStore : public QObject {          // tabla `connections`, migraciones con user_version
+    explicit ConnectionStore(QString databasePath, QObject *parent = nullptr);
+    void load();                                   // -> loaded(QList<ConnectionProfile>) | failed(Error)
+    void save(ConnectionProfile profile, const QStringList &secretFieldKeys = {}); // inserta o actualiza -> saved(ConnectionProfile) | failed(Error)
+                                                   // secretFieldKeys = claves de los campos Kind::Secret del provider; se eliminan (y siempre "password")
+    void remove(QUuid id);                         // -> removed(QUuid) | failed(Error). La app borra también la credencial.
+    void touch(QUuid id);                          // actualiza lastUsedAt -> saved(...)
+    static QString defaultDatabasePath();          // QStandardPaths::AppDataLocation/quarry.db
+};
+
+class CredentialStore : public QObject {           // QtKeychain; servicio "dev.quarry.Quarry", cuenta "connection/<uuid>/password"
+    void readPassword(QUuid id);                    // -> passwordRead(QUuid, QString) | failed(QUuid, Error)
+    void writePassword(QUuid id, QString password); // -> passwordWritten(QUuid) | failed(QUuid, Error)
+    void deletePassword(QUuid id);                  // -> passwordDeleted(QUuid) | failed(...). "Not found" cuenta como éxito.
+    // "Ask every time": la contraseña solo vive en memoria durante la ejecución de la app.
+    void rememberForSession(QUuid id, QString password);
+    std::optional<QString> sessionPassword(QUuid id) const;
+    void forgetForSession(QUuid id);
+};
+
+class ConnectionTester : public QObject {          // usa ProviderRegistry + Session; timeout 15 s
+    explicit ConnectionTester(ProviderRegistry &registry, QObject *parent = nullptr);
+    void test(const ConnectionProfile &profile, const Secrets &secrets); // -> succeeded(ServerInfo) | failed(Error); un test a la vez
+    void setTimeoutMs(int ms);                                // 15000 por defecto (seam de tests)
+    void cancel();                                            // -> cancelled()
+};
+}
+```
+
+Reglas:
+- `quarry.db` **nunca** contiene contraseñas, y `values` no puede llevar un campo de tipo `ConnectionField::Kind::Secret` (`ConnectionStore` los elimina antes de guardar).
+- Si el llavero no está disponible, `CredentialStore` falla con un `Error` claro ("The system keychain is not available…") y la UI ofrece "Ask every time". **Nunca** hay un respaldo en disco.
+- Borrar una conexión: `ConnectionStore::remove` y después `CredentialStore::deletePassword`, que orquesta la app.
+- Implementación (H1.3): `failed(Error)` de `ConnectionStore` no indica la operación; `load()` ordena por nombre; `lastUsedAt` solo lo cambia `touch()`. `ConnectionTester` emite siempre desde el event loop, nunca dentro de `test()`. Tras recargar, los números de `values` pueden ser `double`/`qint64`: usa `toInt()`.
+- Fuera de H1.3: carpetas de conexiones, modo de solo lectura e importar/exportar conexiones.
 
 ## 12. Arranque rápido
 
