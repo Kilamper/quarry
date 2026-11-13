@@ -189,6 +189,7 @@ Criterios: exportar 10 M de filas en streaming con RAM constante (≤ +50 MB); s
 ## H10 — Distribución
 - Windows: MSIX + instalador Inno Setup, firmado. macOS: `.app` universal (arm64 + x86_64 con `lipo`), `.dmg` firmado y **notarizado**. Linux: AppImage (construido en Ubuntu 24.04) + Flatpak.
 - `windeployqt` / `macdeployqt` / `linuxdeploy` con la lista mínima de módulos; avisos de licencia LGPL de Qt y licencias de terceros en "About".
+- Incluir `QtQuick.Dialogs` (Qt6QuickDialogs2 y su plugin QML) y, en Linux, resolver `libQt6DBus` para `libqt6keychain.so` (vcpkg le pone `RUNPATH=$ORIGIN`); hoy un `quarry` del árbol de build en Linux necesita `LD_LIBRARY_PATH`.
 
 Criterios: tamaño de los paquetes dentro del presupuesto; instalación y arranque limpios en máquinas virtuales de las versiones mínimas (Win10 1809, macOS 14.4, Ubuntu 24.04).
 

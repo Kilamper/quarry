@@ -78,6 +78,7 @@ Los textos del código van en inglés (`qsTr`/`tr`). Para actualizar `src/app/i1
 - **`Qt 6.x.y not found at ...`:** ejecuta el script de setup, o revisa `QT_BASE_DIR` / `QT_ROOT_DIR`.
 - **`Could not find a configuration file for package "Qt6" that is compatible with requested version`:** la Qt encontrada no coincide con `.qt-version`. Borra `build/<preset>` y reconfigura.
 - **Rutas largas con vcpkg (Windows):** vcpkg está en `C:\vcpkg` para no pasar de MAX_PATH. Si aun así falla, activa `LongPathsEnabled` (requiere admin): `New-ItemProperty HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem -Name LongPathsEnabled -Value 1 -PropertyType DWORD -Force`.
+- **Linux: `libQt6DBus.so.6: cannot open shared object file` al ejecutar `quarry` desde el build:** QtKeychain de vcpkg no encuentra el DBus de Qt. Ejecuta con `LD_LIBRARY_PATH=~/Qt/$(cat .qt-version)/gcc_64/lib ./build/linux-debug/quarry`. Se resuelve al empaquetar (H10).
 - **Linux: `Could not load the Qt platform plugin "xcb"`:** falta `libxcb-cursor0` u otra `libxcb-*`. Ejecuta de nuevo `scripts/setup.sh` o ejecuta con `QT_DEBUG_PLUGINS=1` para ver qué biblioteca falta.
 - **Linux sin pantalla (CI, SSH):** `QT_QPA_PLATFORM=offscreen`.
 - **Warning `Qt6QmlAssetDownloaderPrivate could not be found because dependency Qt6TaskTree could not be found`:** es benigno. Es un paquete privado opcional de Qt 6.12 que depende del addon `qttasktree`, que no instalamos a propósito para mantener los módulos de Qt al mínimo.

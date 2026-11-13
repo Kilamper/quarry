@@ -69,13 +69,6 @@ quarry_app_warnings(
     ui/theme_manager.cpp ui/theme_tokens.cpp)
 
 qt_add_executable(quarry main.cpp)
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    # vcpkg's libqt6keychain.so has RUNPATH=$ORIGIN, so it cannot find libQt6DBus in the aqt Qt dir.
-    # Linking DBus here loads it through the executable's own RUNPATH first (no symbol is used,
-    # hence --no-as-needed).
-    find_package(Qt6 REQUIRED COMPONENTS DBus)
-    target_link_libraries(quarry PRIVATE -Wl,--no-as-needed Qt6::DBus -Wl,--as-needed)
-endif()
 
 qt_add_qml_module(quarry
     URI Quarry
@@ -118,5 +111,7 @@ find_package(KF6SyntaxHighlighting CONFIG REQUIRED)
 add_test(NAME quarry-smoke COMMAND quarry --smoke)
 set_tests_properties(quarry-smoke PROPERTIES
     TIMEOUT 30
-    ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>;QT_QPA_PLATFORM=set:offscreen"
+    # shortcut: on Linux vcpkg's libqt6keychain.so (RUNPATH=$ORIGIN) does not find libQt6DBus in the
+    # aqt Qt dir, so a build-tree quarry needs LD_LIBRARY_PATH; H10 packaging must bundle/fix it.
+    ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>;LD_LIBRARY_PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>;QT_QPA_PLATFORM=set:offscreen"
 )
