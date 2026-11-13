@@ -41,6 +41,11 @@ CommandRegistry::CommandRegistry(QObject *parent)
         m_recents.resize(kMaxRecents);
 }
 
+QString CommandRegistry::displayShortcut(const QString &portable)
+{
+    return QKeySequence(portable, QKeySequence::PortableText).toString(QKeySequence::NativeText);
+}
+
 int CommandRegistry::matchScore(const QString &query, const QString &text)
 {
     const QString q = query.trimmed().toCaseFolded();

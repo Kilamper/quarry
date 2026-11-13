@@ -48,6 +48,10 @@ public:
     QVariantList commandList() const;
     QStringList recents() const { return m_recents; }
 
+    // Portable shortcut text as the user's platform writes it (Cmd on macOS); the one source for
+    // every shortcut shown in the UI.
+    Q_INVOKABLE static QString displayShortcut(const QString &portable);
+
     // 0 = no match; prefix > word start > subsequence. Case-insensitive.
     static int matchScore(const QString &query, const QString &text);
 

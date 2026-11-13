@@ -158,8 +158,12 @@
         <translation>Ninguna consulta abierta</translation>
     </message>
     <message>
+        <source>Write SQL here. %1 runs the current statement.</source>
+        <translation>Escribe SQL aquí. %1 ejecuta la sentencia actual.</translation>
+    </message>
+    <message>
         <source>Write SQL here. Ctrl+Enter runs the current statement.</source>
-        <translation>Escribe SQL aquí. Ctrl+Enter ejecuta la sentencia actual.</translation>
+        <translation type="vanished">Escribe SQL aquí. Ctrl+Enter ejecuta la sentencia actual.</translation>
     </message>
     <message>
         <source>Results panel</source>

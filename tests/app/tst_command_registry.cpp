@@ -255,6 +255,8 @@ private slots:
         QCOMPARE(c.shortcutText(),
                  QKeySequence(QStringLiteral("Ctrl+K")).toString(QKeySequence::NativeText));
         QCOMPARE(c.sequences(), (QStringList { "Ctrl+K", "Ctrl+Shift+P" }));
+        QCOMPARE(CommandRegistry::displayShortcut(QStringLiteral("Ctrl+Enter")),
+                 QKeySequence(QStringLiteral("Ctrl+Enter")).toString(QKeySequence::NativeText));
         Command none;
         QVERIFY(none.shortcutText().isEmpty());
         QVERIFY(none.sequences().isEmpty());

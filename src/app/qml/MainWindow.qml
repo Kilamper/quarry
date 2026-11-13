@@ -13,10 +13,13 @@ Item {
     // Regions in F6 order. Hidden ones are skipped.
     readonly property list<Item> regions: [sidebarRegion, editorRegion, resultsRegion, statusRegion]
     readonly property list<Command> ownCommands: [cmdPalette, cmdSettings, cmdNewConnection, cmdSidebar, cmdResults, cmdResetLayout, cmdZoomIn, cmdZoomOut, cmdZoomReset, cmdFocusSidebar, cmdFocusEditor, cmdFocusResults, cmdNextRegion, cmdPreviousRegion]
-    readonly property alias paletteDialog: commandPalette
-    readonly property alias settingsDialog: settingsDialog
-    readonly property alias newConnectionInfo: newConnectionInfo
-    readonly property alias appMenu: appMenu
+    // Overlays are created on first use (and preloaded when idle) to keep them off the startup
+    // path; each is null until then.
+    readonly property Item overlayItem: T.Overlay.overlay
+    readonly property var paletteDialog: paletteLoader.item
+    readonly property var settingsDialog: settingsLoader.item
+    readonly property var newConnectionInfo: infoLoader.item
+    readonly property var appMenu: menuLoader.item
     property bool sidebarVisible: shell.flag("sidebarVisible", true)
     property bool resultsVisible: shell.flag("resultsVisible", true)
     readonly property int defaultSidebarWidth: Theme.controlHeight * 10
@@ -26,6 +29,11 @@ Item {
     function flag(key, fallback) {
         const v = LayoutStore.value(key, fallback);
         return v === true || v === "true";
+    }
+
+    function showOverlay(loader) {
+        loader.active = true;
+        loader.item.open();
     }
 
     function regionOf(item) {
@@ -122,7 +130,7 @@ Item {
         shortcut: "Ctrl+K"
         alternateShortcut: "Ctrl+Shift+P"
         trackRecent: false // opening the palette must not push itself to the top of it
-        onTriggered: commandPalette.open()
+        onTriggered: shell.showOverlay(paletteLoader)
     }
 
     Command {
@@ -132,7 +140,7 @@ Item {
         category: qsTr("General")
         title: qsTr("Settings")
         shortcut: "Ctrl+,"
-        onTriggered: settingsDialog.open()
+        onTriggered: shell.showOverlay(settingsLoader)
     }
 
     Command {
@@ -142,7 +150,7 @@ Item {
         category: qsTr("Connection")
         title: qsTr("New connection")
         shortcut: "Ctrl+Shift+N"
-        onTriggered: newConnectionInfo.open()
+        onTriggered: shell.showOverlay(infoLoader)
     }
 
     Command {
@@ -305,7 +313,10 @@ Item {
 
                     accessibleName: qsTr("Menu")
                     iconGlyph: Icons.menu
-                    onClicked: appMenu.popup(menuButton, 0, menuButton.height)
+                    onClicked: {
+                        menuLoader.active = true;
+                        (menuLoader.item as QMenu).popup(menuButton, 0, menuButton.height);
+                    }
                 }
 
                 IconButton {
@@ -424,7 +435,7 @@ Item {
                             focusable: true
                             iconGlyph: Icons.fileCode
                             title: qsTr("No query open")
-                            message: qsTr("Write SQL here. Ctrl+Enter runs the current statement.")
+                            message: qsTr("Write SQL here. %1 runs the current statement.").arg(CommandRegistry.displayShortcut("Ctrl+Enter"))
                         }
                     }
                 }
@@ -538,75 +549,101 @@ Item {
 
     // ---- overlays ----------------------------------------------------------------------------
 
-    CommandPalette {
-        id: commandPalette
+    Loader {
+        id: paletteLoader
+
+        active: false
+        sourceComponent: CommandPalette {}
     }
 
-    SettingsDialog {
-        id: settingsDialog
+    Loader {
+        id: settingsLoader
+
+        active: false
+        sourceComponent: SettingsDialog {}
     }
 
-    QDialog {
-        id: newConnectionInfo
+    Loader {
+        id: infoLoader
 
-        title: qsTr("New connection")
-        width: Math.min(implicitWidth, shell.width - Theme.controlHeight)
-        onOpened: infoOk.forceActiveFocus(Qt.TabFocusReason)
+        active: false
+        sourceComponent: QDialog {
+            id: info
 
-        contentItem: ColumnLayout {
-            spacing: Theme.spacing * 3
+            title: qsTr("New connection")
+            width: Math.min(implicitWidth, shell.width - Theme.controlHeight)
+            onOpened: infoOk.forceActiveFocus(Qt.TabFocusReason)
 
-            Text {
-                Layout.fillWidth: true
-                Layout.preferredWidth: Theme.controlHeight * 14
-                text: qsTr("Connections arrive in the next milestone. Until then there is nothing to connect to.")
-                font.pointSize: Theme.fontSize
-                color: Theme.fgDefault
-                wrapMode: Text.WordWrap
-            }
+            contentItem: ColumnLayout {
+                spacing: Theme.spacing * 3
 
-            QButton {
-                id: infoOk
+                Text {
+                    Layout.fillWidth: true
+                    Layout.preferredWidth: Theme.controlHeight * 14
+                    text: qsTr("Connections arrive in the next milestone. Until then there is nothing to connect to.")
+                    font.pointSize: Theme.fontSize
+                    color: Theme.fgDefault
+                    wrapMode: Text.WordWrap
+                }
 
-                Layout.alignment: Qt.AlignRight
-                text: qsTr("OK")
-                variant: "primary"
-                onClicked: newConnectionInfo.close()
+                QButton {
+                    id: infoOk
+
+                    Layout.alignment: Qt.AlignRight
+                    text: qsTr("OK")
+                    variant: "primary"
+                    onClicked: info.close()
+                }
             }
         }
     }
 
-    QMenu {
-        id: appMenu
+    Loader {
+        id: menuLoader
 
-        // The chosen command runs once the menu is closed, so its focus change sticks.
-        property string pendingId: ""
+        active: false
+        sourceComponent: QMenu {
+            id: appMenu
 
-        title: qsTr("Menu")
-        onClosed: {
-            if (pendingId !== "") {
-                const id = pendingId;
-                pendingId = "";
-                Qt.callLater(() => CommandRegistry.trigger(id));
+            // The chosen command runs once the menu is closed, so its focus change sticks.
+            property string pendingId: ""
+
+            title: qsTr("Menu")
+            onClosed: {
+                if (pendingId !== "") {
+                    const id = pendingId;
+                    pendingId = "";
+                    Qt.callLater(() => CommandRegistry.trigger(id));
+                }
+            }
+
+            Instantiator {
+                model: CommandRegistry.commands
+
+                delegate: QMenuItem {
+                    required property var modelData
+
+                    text: modelData.title
+                    shortcutText: modelData.shortcutText
+                    enabled: modelData.enabled
+                    checkable: modelData.checkable
+                    checked: modelData.checked
+                    onTriggered: appMenu.pendingId = modelData.commandId
+                }
+
+                onObjectAdded: (index, object) => appMenu.insertItem(index, object)
+                onObjectRemoved: (index, object) => appMenu.removeItem(object)
             }
         }
+    }
 
-        Instantiator {
-            model: CommandRegistry.commands
-
-            delegate: QMenuItem {
-                required property var modelData
-
-                text: modelData.title
-                shortcutText: modelData.shortcutText
-                enabled: modelData.enabled
-                checkable: modelData.checkable
-                checked: modelData.checked
-                onTriggered: appMenu.pendingId = modelData.commandId
-            }
-
-            onObjectAdded: (index, object) => appMenu.insertItem(index, object)
-            onObjectRemoved: (index, object) => appMenu.removeItem(object)
+    // Idle preload, so the first Ctrl+K or Ctrl+, opens within a frame.
+    Timer {
+        interval: 1500
+        running: true
+        onTriggered: {
+            paletteLoader.active = true;
+            settingsLoader.active = true;
         }
     }
 }

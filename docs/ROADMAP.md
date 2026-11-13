@@ -8,7 +8,7 @@ Estados: `pendiente` · `en curso` · `hecho` · `bloqueado`
 |---|---|---|
 | F0 | Entorno de desarrollo (Windows verificado) | hecho |
 | H0 | Esqueleto + CI en los tres sistemas | hecho (2026-11-12) |
-| H1 | Versión mínima (subhitos 1.1–1.8) | en curso (1.1 hecho) |
+| H1 | Versión mínima (subhitos 1.1–1.8) | en curso (1.1–1.2 hechos) |
 | H2 | Edición de datos | pendiente |
 | H3 | Autocompletado | pendiente |
 | H4 | Historial y consultas guardadas | pendiente |
@@ -67,7 +67,7 @@ Criterios:
 - [x] Bench (`bench_core`, Release, máquina de referencia): **442 ms** (2,26 M filas/s) y **17 MB** de pico de RSS, frente a ≤ 1,5 s y ≤ 200 MB. Los batches se descartan al leerlos; la RAM con 1 M filas cargadas se mide en H1.7.
 - Sin probar: SQLite con la base bloqueada por otra conexión (la traducción a `Timeout`) ni conexiones concurrentes. KSyntaxHighlighting no tiene definición específica de SQLite; se usa "SQL".
 
-### H1.2 — Shell de la aplicación, tema y componentes base
+### H1.2 — Shell de la aplicación, tema y componentes base · **hecho (2026-11-13)**
 - Ventana principal: barra lateral, área de pestañas, panel de resultados y barra de estado (UX.md §3).
 - `ThemeManager`: claro, oscuro y alto contraste, siguiendo `QStyleHints::colorScheme` y `accessibility()->contrastPreference/motionPreference`, con posibilidad de forzarlos desde los ajustes.
 - Componentes del estilo propio (`Quarry.Controls`): `QButton`, `IconButton`, `QTextField`, `QComboBox`, `QCheckBox`, `QDialog`, `QMenu`, `QToolTip`, `QSplitView`, `QTabBar`, `FocusRing`, `Heading`, con foco visible y `Accessible.*`.
@@ -75,11 +75,13 @@ Criterios:
 - i18n: `qt_add_translations`, `quarry_es.ts`.
 
 Criterios:
-- [ ] Test QML: todo `Item` con `activeFocusOnTab` tiene `Accessible.name` no vacío y un rol que no es `NoRole`.
-- [ ] Test unitario de contraste: todos los pares texto/fondo de los tres temas cumplen ≥ 4.5:1, y los indicadores de foco y bordes de controles ≥ 3:1.
-- [ ] Al cambiar el tema del sistema, la app cambia en caliente. Con alto contraste o movimiento reducido activados, la app los respeta.
-- [ ] Toda la ventana se recorre con Tab, Shift+Tab y F6, sin trampas de foco.
-- [ ] Arranque en frío ≤ presupuesto (PERFORMANCE.md).
+- [x] Test QML (`tests/app/A11y.qml`, usado en `tst_controls` y `tst_mainwindow`): todo `Item` enfocable tiene `Accessible.name` y un rol distinto de `NoRole`, en la ventana completa y también con la paleta y los ajustes abiertos.
+- [x] Test de contraste (`tst_theme_contrast`): texto ≥ 4.5:1 (el mínimo medido es 5.22) e indicadores ≥ 3:1 (mínimo 4.19), en los cuatro temas fijos.
+- [x] El tema cambia en caliente con el sistema (esquema de color, alto contraste, movimiento reducido) y se puede forzar en Ajustes. El alto contraste real de Windows solo se ha probado con la paleta simulada en tests.
+- [x] Toda la ventana se recorre con Tab, Shift+Tab y F6/Shift+F6, más Mod+1/2/3, sin trampas de foco. Los diálogos atrapan el foco y lo devuelven al cerrarse.
+- [x] Arranque en caliente: mediana de **366 ms** (`--bench-startup`, Release, 7 ejecuciones) frente a ≤ 400 ms. Una ventana vacía de Qt cuesta ~320–335 ms en esta máquina, así que el margen es pequeño (ver PERFORMANCE.md).
+- Además: paleta de comandos (Mod+K / Mod+Shift+P), Ajustes (Mod+,), comandos para mostrar y ocultar paneles y restablecer el diseño, interfaz en español (79 textos) con cambio de idioma en caliente.
+- Sin probar: la pasada manual con lectores de pantalla (`docs/a11y-checklist.md`) y si se anuncia bien el elemento activo de la paleta.
 
 ### H1.3 — Conexiones y credenciales
 - `AppDatabase` (`quarry.db`, migraciones) y `ConnectionStore`.

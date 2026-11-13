@@ -20,6 +20,14 @@ int main(int argc, char *argv[])
     QElapsedTimer sinceStart; // for --bench-startup; started before anything else
     sinceStart.start();
     QGuiApplication app(argc, argv);
+    // --bench-startup also prints where the time goes, to stderr.
+    const bool bench = app.arguments().contains(QStringLiteral("--bench-startup"));
+    const auto mark = [&](const char *what) {
+        if (bench)
+            std::fprintf(stderr, "TRACE %6lld ms %s\n",
+                         static_cast<long long>(sinceStart.elapsed()), what);
+    };
+    mark("QGuiApplication");
     QCoreApplication::setOrganizationName(QStringLiteral("Quarry"));
     QCoreApplication::setOrganizationDomain(QStringLiteral("quarry.dev"));
     QCoreApplication::setApplicationName(QStringLiteral("Quarry"));
@@ -29,17 +37,19 @@ int main(int argc, char *argv[])
     QGuiApplication::styleHints()->setTabFocusBehavior(Qt::TabFocusAllControls);
 
     const bool smoke = app.arguments().contains(QStringLiteral("--smoke"));
-    const bool bench = app.arguments().contains(QStringLiteral("--bench-startup"));
 
     // shortcut: synchronous scan on the UI thread, move to a worker when plugins are numerous (H1).
     quarry::ProviderRegistry registry;
     registry.scan(quarry::ProviderRegistry::defaultPluginDirectory());
+    mark("providers scanned");
     qCInfo(lcApp) << "Providers available:" << registry.available().size();
 
     // Before the engine: the first frame is already translated. The engine reuses this instance.
     quarry::ui::LanguageManager language(nullptr);
+    mark("language");
 
     QQmlApplicationEngine engine;
+    mark("engine");
     QObject::connect(
         &engine, &QQmlApplicationEngine::objectCreationFailed, &app,
         [] { QCoreApplication::exit(1); }, Qt::QueuedConnection);
@@ -57,6 +67,7 @@ int main(int argc, char *argv[])
     }
 
     engine.loadFromModule("Quarry", "Main");
+    mark("loadFromModule");
     if (engine.rootObjects().isEmpty())
         return 1;
 
@@ -67,7 +78,8 @@ int main(int argc, char *argv[])
             return 1;
         QObject::connect(
             window, &QQuickWindow::frameSwapped, &app,
-            [&sinceStart, &app] {
+            [&sinceStart, &app, &mark] {
+                mark("first frame");
                 std::printf("{\"metric\":\"startup_first_frame_ms\",\"value\":%lld}\n",
                             static_cast<long long>(sinceStart.elapsed()));
                 std::fflush(stdout);

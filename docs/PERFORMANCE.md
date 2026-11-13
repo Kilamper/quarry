@@ -12,7 +12,7 @@ Los runners compartidos de GitHub tienen mucho ruido, así que hay dos niveles:
 
 | Indicador | Presupuesto | Condiciones |
 |---|---|---|
-| Arranque en caliente → primer frame interactivo | **≤ 400 ms** | Sin conexiones abiertas, caché de disco caliente |
+| Arranque en caliente → primer frame interactivo | **≤ 400 ms** | Sin conexiones abiertas, caché de disco caliente. Medido en H1.2: 366 ms (mediana), con un suelo de ~320–335 ms para una ventana vacía de Qt Quick en la máquina de referencia |
 | Arranque en frío | **≤ 1 s** | Primer arranque tras reiniciar |
 | RAM en reposo (ventana principal, sin conexiones) | **≤ 80 MB** | *Private working set* (Windows) / RSS (macOS, Linux) |
 | RAM con 1 conexión, árbol desplegado y 1 pestaña con 500 filas | **≤ 120 MB** | |

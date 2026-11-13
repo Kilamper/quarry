@@ -39,7 +39,7 @@ TestCase {
     // ---- helpers -----------------------------------------------------------------------------
 
     function overlay() {
-        return shell.paletteDialog.parent;
+        return shell.overlayItem;
     }
 
     function focused() {
@@ -61,22 +61,22 @@ TestCase {
 
     function openPalette() {
         keyClick(Qt.Key_K, Qt.ControlModifier);
-        tryVerify(() => shell.paletteDialog.opened);
+        tryVerify(() => shell.paletteDialog?.opened);
         tryVerify(() => paletteField().activeFocus);
     }
 
     function openSettings() {
         keyClick(Qt.Key_Comma, Qt.ControlModifier);
-        tryVerify(() => shell.settingsDialog.opened);
+        tryVerify(() => shell.settingsDialog?.opened);
     }
 
     function closeOverlays() {
         for (const d of [shell.paletteDialog, shell.settingsDialog, shell.newConnectionInfo, shell.appMenu])
-            if (d.visible) {
+            if (d && d.visible) {
                 tryVerify(() => d.opened || !d.visible); // a popup still entering cannot be closed reliably
                 d.close();
             }
-        const open = () => [shell.paletteDialog, shell.settingsDialog, shell.newConnectionInfo, shell.appMenu].filter(d => d.visible).map(d => d.objectName || String(d));
+        const open = () => [shell.paletteDialog, shell.settingsDialog, shell.newConnectionInfo, shell.appMenu].filter(d => d && d.visible).map(d => d.objectName || String(d));
         tryVerify(() => open().length === 0, 5000, "still open: " + open());
     }
 
@@ -166,7 +166,7 @@ TestCase {
 
     function test_walkerWithInfoDialogOpen() {
         CommandRegistry.trigger("connection.new");
-        tryVerify(() => shell.newConnectionInfo.opened);
+        tryVerify(() => shell.newConnectionInfo?.opened);
         compare(walker.problems(overlay()), []);
     }
 
@@ -318,7 +318,7 @@ TestCase {
 
     function test_modShiftPOpensToo() {
         keyClick(Qt.Key_P, Qt.ControlModifier | Qt.ShiftModifier);
-        tryVerify(() => shell.paletteDialog.opened);
+        tryVerify(() => shell.paletteDialog?.opened);
     }
 
     function test_paletteListsEveryCommandWithItsShortcut() {
@@ -421,13 +421,13 @@ TestCase {
 
     function test_menuListsTheSameCommands() {
         mouseClick(button("Menu"));
-        tryVerify(() => shell.appMenu.opened);
+        tryVerify(() => shell.appMenu?.opened);
         compare(shell.appMenu.count, CommandRegistry.commands.length);
         const toggle = shell.appMenu.itemAt(3);
         compare(toggle.Accessible.role, Accessible.MenuItem);
         compare(toggle.text, CommandRegistry.find("view.toggleSidebar").title);
         compare(toggle.checked, true);
-        compare(toggle.Accessible.description, "Ctrl+B");
+        compare(toggle.Accessible.description, CommandRegistry.find("view.toggleSidebar").shortcutText); // native text: Cmd on macOS
         keyClick(Qt.Key_Escape);
         tryVerify(() => !shell.appMenu.visible);
     }

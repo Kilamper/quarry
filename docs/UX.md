@@ -86,7 +86,8 @@ Todos los atajos aparecen en la paleta de comandos junto a su comando; así se p
 
 ## 5. Paleta de comandos
 
-- `CommandRegistry` (C++) guarda los comandos: `id`, `title` (traducible), `category`, `shortcut`, `enabled()` según el contexto y `trigger()`. Los menús, los atajos y la paleta usan esa misma fuente.
+- `CommandRegistry` (C++) guarda los comandos: `commandId` (en QML `id` está reservado), `title` (traducible), `category`, `shortcut` y un atajo alternativo opcional, `enabled`, `trackRecent` y `trigger()`. Los menús, los atajos y la paleta usan esa misma fuente. El texto de los atajos sale de `CommandRegistry.displayShortcut()`, que usa el modificador nativo de cada plataforma (⌘ en macOS); nunca se escribe "Ctrl+" a mano.
+- Menú de la app: un botón de menú (IconButton "Menu") abre un `QMenu` con los mismos comandos, en todas las plataformas, porque la barra de menús nativa de macOS exigiría Qt.labs.platform. La paleta y los Ajustes se crean al usarse por primera vez o tras 1,5 s de inactividad, para no penalizar el arranque.
 - Búsqueda difusa por título y categoría; los comandos usados recientemente salen primero.
 - También sirve para saltar a objetos: con el prefijo `@` busca tablas y vistas en la caché de metadatos de la conexión activa (H3).
 - Accesibilidad: un campo con rol `EditableText`, una lista con rol `List` y el elemento activo con `ListItem`. Al filtrar se anuncia "N commands". Las flechas mueven el elemento activo sin quitar el foco del campo. Enter ejecuta y Esc cierra y devuelve el foco.

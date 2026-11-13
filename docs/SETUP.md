@@ -67,7 +67,11 @@ $env:Path = "C:\Qt\6.12.0\msvc2022_64\bin;$env:Path"; .\build\windows-debug\env-
 | `QT_BASE_DIR` | Variable de caché de CMake (`-DQT_BASE_DIR=...`) para instalar Qt fuera de la ruta por defecto. |
 | `QT_QPA_PLATFORM=offscreen` | Para ejecutar la app en Linux sin pantalla. El test smoke ya la usa. |
 
+## Traducciones
+Los textos del código van en inglés (`qsTr`/`tr`). Para actualizar `src/app/i18n/quarry_es.ts` después de cambiar textos: `cmake --build --preset windows-debug --target update_translations` (o el preset de tu sistema). Después edita el `.ts` con Qt Linguist o a mano. Los `.qm` se generan en el build y no se versionan.
+
 ## Problemas comunes
+- **Windows con MSVC en otro idioma:** los presets fijan `VSLANG=1033`. Sin eso, `/showIncludes` sale traducido ("Nota: inclusión del archivo:"), ninja no detecta las dependencias de las cabeceras y quedan objetos obsoletos. Si compilas fuera de los presets, define `VSLANG=1033`.
 
 - **`python3` abre la Microsoft Store (Windows):** es un alias de `WindowsApps`. Usa `py` o `python`, o desactívalo en *Configuración → Aplicaciones → Alias de ejecución de aplicaciones*.
 - **`cmake`/`ninja` no se encuentran justo después de instalarlos:** winget actualiza el PATH del registro, no el de la shell abierta. Abre una terminal nueva. `setup.ps1` ya refresca el PATH por su cuenta.
