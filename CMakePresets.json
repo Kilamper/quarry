@@ -20,6 +20,7 @@
       "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" },
       "architecture": { "value": "x64", "strategy": "external" },
       "toolset": { "value": "host=x64", "strategy": "external" },
+      "environment": { "VSLANG": "1033" },
       "cacheVariables": {
         "CMAKE_CXX_COMPILER": "cl",
         "QT_BASE_DIR": "C:/Qt",
