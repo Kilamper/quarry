@@ -1,10 +1,7 @@
 #include "ui/language_manager.h"
 
-#include <quarry/provider_registry.h>
-
 #include <QElapsedTimer>
 #include <QGuiApplication>
-#include <QLoggingCategory>
 #include <QQmlApplicationEngine>
 #include <QQmlError>
 #include <QQuickWindow>
@@ -12,8 +9,6 @@
 #include <QTimer>
 
 #include <cstdio>
-
-Q_LOGGING_CATEGORY(lcApp, "quarry.app")
 
 int main(int argc, char *argv[])
 {
@@ -38,11 +33,8 @@ int main(int argc, char *argv[])
 
     const bool smoke = app.arguments().contains(QStringLiteral("--smoke"));
 
-    // shortcut: synchronous scan on the UI thread, move to a worker when plugins are numerous (H1).
-    quarry::ProviderRegistry registry;
-    registry.scan(quarry::ProviderRegistry::defaultPluginDirectory());
-    mark("providers scanned");
-    qCInfo(lcApp) << "Providers available:" << registry.available().size();
+    // The provider scan and the connection store start after the first frame
+    // (ConnectionController::start), so they are not part of the startup path.
 
     // Before the engine: the first frame is already translated. The engine reuses this instance.
     quarry::ui::LanguageManager language(nullptr);

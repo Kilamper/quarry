@@ -2,6 +2,17 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="es_ES" sourcelanguage="en">
 <context>
+    <name>ColorPicker</name>
+    <message>
+        <source>No color</source>
+        <translation>Sin color</translation>
+    </message>
+    <message>
+        <source>Color</source>
+        <translation>Color</translation>
+    </message>
+</context>
+<context>
     <name>CommandPalette</name>
     <message>
         <source>Command palette</source>
@@ -33,6 +44,269 @@
     </message>
 </context>
 <context>
+    <name>ConnectionDialog</name>
+    <message>
+        <source>No database engine is available.</source>
+        <translation>No hay ningún motor de base de datos disponible.</translation>
+    </message>
+    <message>
+        <source>Enter a name to save.</source>
+        <translation>Escribe un nombre para guardar.</translation>
+    </message>
+    <message>
+        <source>Fill in the required fields to save.</source>
+        <translation>Rellena los campos obligatorios para guardar.</translation>
+    </message>
+    <message>
+        <source>Fix the fields marked as required before testing.</source>
+        <translation>Corrige los campos obligatorios antes de probar.</translation>
+    </message>
+    <message>
+        <source>%1 *</source>
+        <translation>%1 *</translation>
+    </message>
+    <message>
+        <source>Required</source>
+        <translation>Obligatorio</translation>
+    </message>
+    <message>
+        <source>Browse…</source>
+        <translation>Examinar…</translation>
+    </message>
+    <message>
+        <source>Browse… (%1)</source>
+        <translation>Examinar… (%1)</translation>
+    </message>
+    <message>
+        <source>Edit connection</source>
+        <translation>Editar conexión</translation>
+    </message>
+    <message>
+        <source>New connection</source>
+        <translation>Nueva conexión</translation>
+    </message>
+    <message>
+        <source>Testing…</source>
+        <translation>Probando…</translation>
+    </message>
+    <message>
+        <source>Connection failed. %1 %2</source>
+        <translation>La conexión ha fallado. %1 %2</translation>
+    </message>
+    <message>
+        <source>Engine</source>
+        <translation>Motor</translation>
+    </message>
+    <message>
+        <source>Engine: %1</source>
+        <translation>Motor: %1</translation>
+    </message>
+    <message>
+        <source>Name *</source>
+        <translation>Nombre *</translation>
+    </message>
+    <message>
+        <source>Name</source>
+        <translation>Nombre</translation>
+    </message>
+    <message>
+        <source>Enter a name for the connection.</source>
+        <translation>Escribe un nombre para la conexión.</translation>
+    </message>
+    <message>
+        <source>Advanced options</source>
+        <translation>Opciones avanzadas</translation>
+    </message>
+    <message>
+        <source>Password</source>
+        <translation>Contraseña</translation>
+    </message>
+    <message>
+        <source>The password was not copied from the original connection. Enter it again.</source>
+        <translation>La contraseña no se ha copiado de la conexión original. Vuelve a escribirla.</translation>
+    </message>
+    <message>
+        <source>Password storage</source>
+        <translation>Almacenamiento de la contraseña</translation>
+    </message>
+    <message>
+        <source>Save password in the system keychain</source>
+        <translation>Guardar la contraseña en el llavero del sistema</translation>
+    </message>
+    <message>
+        <source>Ask every time</source>
+        <translation>Pedir cada vez</translation>
+    </message>
+    <message>
+        <source>Used only to test; never saved</source>
+        <translation>Solo se usa para probar; no se guarda</translation>
+    </message>
+    <message>
+        <source>Leave empty to keep the saved password</source>
+        <translation>Déjala vacía para conservar la contraseña guardada</translation>
+    </message>
+    <message>
+        <source>The password is asked for every time you connect. It is never saved.</source>
+        <translation>La contraseña se pide cada vez que te conectas. No se guarda nunca.</translation>
+    </message>
+    <message>
+        <source>Color</source>
+        <translation>Color</translation>
+    </message>
+    <message>
+        <source>Production connection</source>
+        <translation>Conexión de producción</translation>
+    </message>
+    <message>
+        <source>Shows a PRODUCTION label next to this connection and asks you to type its name before deleting it.</source>
+        <translation>Muestra la etiqueta PRODUCCIÓN junto a esta conexión y pide escribir su nombre antes de eliminarla.</translation>
+    </message>
+    <message>
+        <source>Test connection</source>
+        <translation>Probar conexión</translation>
+    </message>
+    <message>
+        <source>Could not connect</source>
+        <translation>No se ha podido conectar</translation>
+    </message>
+    <message>
+        <source>The connection could not be saved</source>
+        <translation>No se ha podido guardar la conexión</translation>
+    </message>
+    <message>
+        <source>Ask every time instead</source>
+        <translation>Pedir cada vez en su lugar</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Cancelar</translation>
+    </message>
+    <message>
+        <source>Save</source>
+        <translation>Guardar</translation>
+    </message>
+</context>
+<context>
+    <name>ConnectionList</name>
+    <message>
+        <source>Connections</source>
+        <translation>Conexiones</translation>
+    </message>
+    <message>
+        <source>New connection</source>
+        <translation>Nueva conexión</translation>
+    </message>
+    <message>
+        <source>Something went wrong</source>
+        <translation>Algo ha ido mal</translation>
+    </message>
+    <message>
+        <source>Could not load the connections</source>
+        <translation>No se han podido cargar las conexiones</translation>
+    </message>
+    <message>
+        <source>Try again</source>
+        <translation>Reintentar</translation>
+    </message>
+    <message>
+        <source>Dismiss</source>
+        <translation>Descartar</translation>
+    </message>
+    <message>
+        <source>Loading connections…</source>
+        <translation>Cargando conexiones…</translation>
+    </message>
+    <message>
+        <source>No connections yet</source>
+        <translation>Aún no hay conexiones</translation>
+    </message>
+    <message>
+        <source>Add a connection to browse its tables and run queries.</source>
+        <translation>Añade una conexión para explorar sus tablas y ejecutar consultas.</translation>
+    </message>
+    <message>
+        <source>Open SQLite file</source>
+        <translation>Abrir archivo SQLite</translation>
+    </message>
+    <message>
+        <source>production</source>
+        <translation>producción</translation>
+    </message>
+    <message>
+        <source>Connection actions</source>
+        <translation>Acciones de la conexión</translation>
+    </message>
+    <message>
+        <source>Edit</source>
+        <translation>Editar</translation>
+    </message>
+    <message>
+        <source>Duplicate</source>
+        <translation>Duplicar</translation>
+    </message>
+    <message>
+        <source>Delete</source>
+        <translation>Eliminar</translation>
+    </message>
+</context>
+<context>
+    <name>DeleteConnectionDialog</name>
+    <message>
+        <source>Delete connection</source>
+        <translation>Eliminar conexión</translation>
+    </message>
+    <message>
+        <source>Delete the connection “%1”? Its saved password is removed too. The database itself is not touched.</source>
+        <translation>¿Eliminar la conexión “%1”? Su contraseña guardada también se elimina. La base de datos no se toca.</translation>
+    </message>
+    <message>
+        <source>This is a production connection. Type its name to confirm.</source>
+        <translation>Esta es una conexión de producción. Escribe su nombre para confirmar.</translation>
+    </message>
+    <message>
+        <source>Type the connection name to confirm</source>
+        <translation>Escribe el nombre de la conexión para confirmar</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Cancelar</translation>
+    </message>
+    <message>
+        <source>Delete</source>
+        <translation>Eliminar</translation>
+    </message>
+    <message>
+        <source>Type the connection name to enable Delete</source>
+        <translation>Escribe el nombre de la conexión para activar Eliminar</translation>
+    </message>
+</context>
+<context>
+    <name>ErrorPanel</name>
+    <message>
+        <source>Technical details</source>
+        <translation>Detalles técnicos</translation>
+    </message>
+    <message>
+        <source>Copy details</source>
+        <translation>Copiar detalles</translation>
+    </message>
+</context>
+<context>
+    <name>FilePicker</name>
+    <message>
+        <source>Choose a database file</source>
+        <translation>Elegir un archivo de base de datos</translation>
+    </message>
+    <message>
+        <source>SQLite databases (*.db *.sqlite *.sqlite3 *.db3)</source>
+        <translation>Bases de datos SQLite (*.db *.sqlite *.sqlite3 *.db3)</translation>
+    </message>
+    <message>
+        <source>All files (*)</source>
+        <translation>Todos los archivos (*)</translation>
+    </message>
+</context>
+<context>
     <name>Main</name>
     <message>
         <source>Quarry</source>
@@ -41,6 +315,14 @@
 </context>
 <context>
     <name>MainWindow</name>
+    <message>
+        <source>Selected connection: %1</source>
+        <translation>Conexión seleccionada: %1</translation>
+    </message>
+    <message>
+        <source>production</source>
+        <translation>producción</translation>
+    </message>
     <message>
         <source>General</source>
         <translation>General</translation>
@@ -60,6 +342,22 @@
     <message>
         <source>New connection</source>
         <translation>Nueva conexión</translation>
+    </message>
+    <message>
+        <source>Open SQLite file</source>
+        <translation>Abrir archivo SQLite</translation>
+    </message>
+    <message>
+        <source>Edit connection</source>
+        <translation>Editar conexión</translation>
+    </message>
+    <message>
+        <source>Duplicate connection</source>
+        <translation>Duplicar conexión</translation>
+    </message>
+    <message>
+        <source>Delete connection</source>
+        <translation>Eliminar conexión</translation>
     </message>
     <message>
         <source>View</source>
@@ -130,16 +428,20 @@
         <translation>Barra lateral</translation>
     </message>
     <message>
+        <source>Selected: %1</source>
+        <translation>Seleccionada: %1</translation>
+    </message>
+    <message>
         <source>Connections</source>
-        <translation>Conexiones</translation>
+        <translation type="vanished">Conexiones</translation>
     </message>
     <message>
         <source>No connections yet</source>
-        <translation>Aún no hay conexiones</translation>
+        <translation type="vanished">Aún no hay conexiones</translation>
     </message>
     <message>
         <source>Add a connection to browse its tables and run queries.</source>
-        <translation>Añade una conexión para explorar sus tablas y ejecutar consultas.</translation>
+        <translation type="vanished">Añade una conexión para explorar sus tablas y ejecutar consultas.</translation>
     </message>
     <message>
         <source>Resize results panel</source>
@@ -207,11 +509,18 @@
     </message>
     <message>
         <source>Connections arrive in the next milestone. Until then there is nothing to connect to.</source>
-        <translation>Las conexiones llegarán en el próximo hito. Hasta entonces no hay nada a lo que conectarse.</translation>
+        <translation type="vanished">Las conexiones llegarán en el próximo hito. Hasta entonces no hay nada a lo que conectarse.</translation>
     </message>
     <message>
         <source>OK</source>
-        <translation>Aceptar</translation>
+        <translation type="vanished">Aceptar</translation>
+    </message>
+</context>
+<context>
+    <name>ProductionBadge</name>
+    <message>
+        <source>PRODUCTION</source>
+        <translation>PRODUCCIÓN</translation>
     </message>
 </context>
 <context>
@@ -340,6 +649,48 @@
     <message>
         <source>Slate</source>
         <translation>Pizarra</translation>
+    </message>
+</context>
+<context>
+    <name>quarry::ui::ConnectionController</name>
+    <message>
+        <source>Check the user name and the password.</source>
+        <translation>Comprueba el usuario y la contraseña.</translation>
+    </message>
+    <message>
+        <source>Check the host, the port and that the server is running.</source>
+        <translation>Comprueba el servidor, el puerto y que el servidor esté en marcha.</translation>
+    </message>
+    <message>
+        <source>The server did not answer in 15 seconds.</source>
+        <translation>El servidor no ha respondido en 15 segundos.</translation>
+    </message>
+    <message>
+        <source>Connected to %1 %2</source>
+        <translation>Conectado a %1 %2</translation>
+    </message>
+    <message>
+        <source>The database engine could not be loaded.</source>
+        <translation>No se ha podido cargar el motor de base de datos.</translation>
+    </message>
+    <message>
+        <source>%1 (copy)</source>
+        <translation>%1 (copia)</translation>
+    </message>
+    <message>
+        <source>The SQLite engine is not available.</source>
+        <translation>El motor SQLite no está disponible.</translation>
+    </message>
+</context>
+<context>
+    <name>quarry::ui::ConnectionFormModel</name>
+    <message>
+        <source>Enter a whole number.</source>
+        <translation>Escribe un número entero.</translation>
+    </message>
+    <message>
+        <source>This field is required.</source>
+        <translation>Este campo es obligatorio.</translation>
     </message>
 </context>
 </TS>

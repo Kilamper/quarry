@@ -70,13 +70,17 @@ TestCase {
         tryVerify(() => shell.settingsDialog?.opened);
     }
 
+    function overlays() {
+        return [shell.paletteDialog, shell.settingsDialog, shell.connectionDialog, shell.deleteDialog, shell.appMenu];
+    }
+
     function closeOverlays() {
-        for (const d of [shell.paletteDialog, shell.settingsDialog, shell.newConnectionInfo, shell.appMenu])
+        for (const d of overlays())
             if (d && d.visible) {
                 tryVerify(() => d.opened || !d.visible); // a popup still entering cannot be closed reliably
                 d.close();
             }
-        const open = () => [shell.paletteDialog, shell.settingsDialog, shell.newConnectionInfo, shell.appMenu].filter(d => d && d.visible).map(d => d.objectName || String(d));
+        const open = () => overlays().filter(d => d && d.visible).map(d => d.objectName || String(d));
         tryVerify(() => open().length === 0, 5000, "still open: " + open());
     }
 
@@ -116,7 +120,9 @@ TestCase {
         compare(comp.status, Component.Ready, comp.errorString());
         shell = comp.createObject(testCase, {
             width: testCase.width,
-            height: testCase.height
+            height: testCase.height,
+            databasePath: testTempDir + "/mainwindow.db",
+            providerDirectory: testPluginDir
         });
         verify(shell !== null);
         verify(CommandRegistry.registerCommand(testCmd));
@@ -164,9 +170,9 @@ TestCase {
         verify(walker.findAll(overlay(), i => i.visible && i.activeFocusOnTab).length >= 6);
     }
 
-    function test_walkerWithInfoDialogOpen() {
+    function test_walkerWithConnectionDialogOpen() {
         CommandRegistry.trigger("connection.new");
-        tryVerify(() => shell.newConnectionInfo?.opened);
+        tryVerify(() => shell.connectionDialog?.opened);
         compare(walker.problems(overlay()), []);
     }
 
@@ -405,6 +411,22 @@ TestCase {
 
     function test_everyCommandRunsFromThePalette() {
         for (const c of CommandRegistry.commands.slice()) {
+            // Connection commands that act on the selected connection are disabled here: the
+            // palette lists them but must not run them (tst_connections.qml covers them enabled).
+            if (!c.enabled) {
+                verify(c.commandId.startsWith("connection."), c.commandId + " is disabled");
+                continue;
+            }
+            // The platform file dialog cannot be dismissed reliably offscreen: only check that
+            // the palette finds it.
+            if (c.commandId === "connection.openSqlite") {
+                openPalette();
+                typeText(c.title.toLowerCase());
+                tryVerify(() => paletteList().count >= 1);
+                compare(paletteList().currentItem.commandId, c.commandId);
+                init();
+                continue;
+            }
             const spy = createTemporaryObject(spyComp, testCase, {
                 target: c,
                 signalName: "triggered"
@@ -423,7 +445,7 @@ TestCase {
         mouseClick(button("Menu"));
         tryVerify(() => shell.appMenu?.opened);
         compare(shell.appMenu.count, CommandRegistry.commands.length);
-        const toggle = shell.appMenu.itemAt(3);
+        const toggle = shell.appMenu.itemAt(CommandRegistry.commands.findIndex(c => c.commandId === "view.toggleSidebar"));
         compare(toggle.Accessible.role, Accessible.MenuItem);
         compare(toggle.text, CommandRegistry.find("view.toggleSidebar").title);
         compare(toggle.checked, true);

@@ -39,6 +39,12 @@ qt_add_qml_module(quarry_ui
         ui/command.h
         ui/command_registry.cpp
         ui/command_registry.h
+        ui/connection_controller.cpp
+        ui/connection_controller.h
+        ui/connection_form_model.cpp
+        ui/connection_form_model.h
+        ui/connection_list_model.cpp
+        ui/connection_list_model.h
         ui/language_manager.cpp
         ui/language_manager.h
         ui/layout_store.cpp
@@ -56,9 +62,10 @@ qt_add_qml_module(quarry_ui
 )
 # ui/ too: the generated QML registration code includes the headers by bare file name.
 target_include_directories(quarry_ui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/ui)
-target_link_libraries(quarry_ui PUBLIC Qt6::Gui Qt6::Qml Qt6::Quick)
+target_link_libraries(quarry_ui PUBLIC quarry_core Qt6::Gui Qt6::Qml Qt6::Quick)
 quarry_app_warnings(
-    ui/command.cpp ui/command_registry.cpp ui/language_manager.cpp ui/layout_store.cpp
+    ui/command.cpp ui/command_registry.cpp ui/connection_controller.cpp ui/connection_form_model.cpp
+    ui/connection_list_model.cpp ui/language_manager.cpp ui/layout_store.cpp
     ui/theme_manager.cpp ui/theme_tokens.cpp)
 
 qt_add_executable(quarry main.cpp)
@@ -73,6 +80,13 @@ qt_add_qml_module(quarry
         qml/SettingsDialog.qml
         qml/EmptyState.qml
         qml/Region.qml
+        qml/ConnectionList.qml
+        qml/ConnectionDialog.qml
+        qml/ColorPicker.qml
+        qml/DeleteConnectionDialog.qml
+        qml/ProductionBadge.qml
+        qml/FilePicker.qml
+        qml/ErrorPanel.qml
     DEPENDENCIES QtQuick QtQuick.Controls.Basic QtQuick.Layouts QtQml Quarry.Controls
 )
 

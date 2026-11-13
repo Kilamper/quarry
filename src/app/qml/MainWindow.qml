@@ -12,16 +12,24 @@ Item {
 
     // Regions in F6 order. Hidden ones are skipped.
     readonly property list<Item> regions: [sidebarRegion, editorRegion, resultsRegion, statusRegion]
-    readonly property list<Command> ownCommands: [cmdPalette, cmdSettings, cmdNewConnection, cmdSidebar, cmdResults, cmdResetLayout, cmdZoomIn, cmdZoomOut, cmdZoomReset, cmdFocusSidebar, cmdFocusEditor, cmdFocusResults, cmdNextRegion, cmdPreviousRegion]
+    readonly property list<Command> ownCommands: [cmdPalette, cmdSettings, cmdNewConnection, cmdOpenSqlite, cmdEditConnection, cmdDuplicateConnection, cmdDeleteConnection, cmdSidebar, cmdResults, cmdResetLayout, cmdZoomIn, cmdZoomOut, cmdZoomReset, cmdFocusSidebar, cmdFocusEditor, cmdFocusResults, cmdNextRegion, cmdPreviousRegion]
     // Overlays are created on first use (and preloaded when idle) to keep them off the startup
     // path; each is null until then.
     readonly property Item overlayItem: T.Overlay.overlay
     readonly property var paletteDialog: paletteLoader.item
     readonly property var settingsDialog: settingsLoader.item
-    readonly property var newConnectionInfo: infoLoader.item
+    readonly property var connectionDialog: connectionLoader.item
+    readonly property var deleteDialog: deleteLoader.item
+    readonly property var filePicker: pickerLoader.item
+    readonly property alias connections: connectionsCtl
+    readonly property alias sidebar: sidebar
     readonly property var appMenu: menuLoader.item
+    // Where the connections live; empty = the application's own. Tests use a temporary one.
+    property string databasePath: ""
+    property string providerDirectory: ""
     property bool sidebarVisible: shell.flag("sidebarVisible", true)
     property bool resultsVisible: shell.flag("resultsVisible", true)
+    readonly property string selectedSummary: sidebar.hasCurrent ? qsTr("Selected connection: %1").arg(sidebar.currentName) + (sidebar.currentProduction ? ", " + qsTr("production") : "") : ""
     readonly property int defaultSidebarWidth: Theme.controlHeight * 10
     readonly property int defaultResultsHeight: Theme.controlHeight * 8
 
@@ -34,6 +42,20 @@ Item {
     function showOverlay(loader) {
         loader.active = true;
         loader.item.open();
+    }
+
+    function openConnectionDialog(id, copied) {
+        connectionLoader.active = true;
+        connectionLoader.item.openFor(id, copied === true);
+    }
+
+    function askDelete(id) {
+        const row = connectionsCtl.model.indexOf(id);
+        if (row < 0)
+            return;
+        const c = connectionsCtl.model.get(row);
+        deleteLoader.active = true;
+        deleteLoader.item.openFor(id, c.name, c.production);
     }
 
     function regionOf(item) {
@@ -119,6 +141,38 @@ Item {
         }
     }
 
+    // ---- connections -------------------------------------------------------------------------
+
+    ConnectionController {
+        id: connectionsCtl
+
+        databasePath: shell.databasePath
+        providerDirectory: shell.providerDirectory
+
+        onConnectionSaved: id => sidebar.selectId(id)
+        // The copy has no password (it is never copied): when it needs one, the edit dialog opens
+        // and says so.
+        onConnectionDuplicated: id => {
+            sidebar.selectId(id);
+            if (connectionsCtl.model.get(connectionsCtl.model.indexOf(id)).passwordMode === 1)
+                shell.openConnectionDialog(id, true);
+        }
+        onConnectionRemoved: Qt.callLater(() => {
+            if (shell.regionOf(shell.Window.activeFocusItem) < 0)
+                shell.focusRegion(0);
+        })
+    }
+
+    // The provider scan and the store thread start after the first frame, never before it.
+    Connections {
+        target: shell.Window.window
+        enabled: !connectionsCtl.started
+
+        function onFrameSwapped() {
+            connectionsCtl.start();
+        }
+    }
+
     // ---- commands ----------------------------------------------------------------------------
 
     Command {
@@ -150,7 +204,47 @@ Item {
         category: qsTr("Connection")
         title: qsTr("New connection")
         shortcut: "Ctrl+Shift+N"
-        onTriggered: shell.showOverlay(infoLoader)
+        onTriggered: shell.openConnectionDialog("", false)
+    }
+
+    Command {
+        id: cmdOpenSqlite
+
+        commandId: "connection.openSqlite"
+        category: qsTr("Connection")
+        title: qsTr("Open SQLite file")
+        shortcut: "Ctrl+O"
+        onTriggered: shell.showOverlay(pickerLoader)
+    }
+
+    Command {
+        id: cmdEditConnection
+
+        commandId: "connection.edit"
+        category: qsTr("Connection")
+        title: qsTr("Edit connection")
+        enabled: sidebar.hasCurrent
+        onTriggered: shell.openConnectionDialog(sidebar.currentId, false)
+    }
+
+    Command {
+        id: cmdDuplicateConnection
+
+        commandId: "connection.duplicate"
+        category: qsTr("Connection")
+        title: qsTr("Duplicate connection")
+        enabled: sidebar.hasCurrent
+        onTriggered: connectionsCtl.duplicate(sidebar.currentId)
+    }
+
+    Command {
+        id: cmdDeleteConnection
+
+        commandId: "connection.delete"
+        category: qsTr("Connection")
+        title: qsTr("Delete connection")
+        enabled: sidebar.hasCurrent
+        onTriggered: shell.askDelete(sidebar.currentId)
     }
 
     Command {
@@ -364,40 +458,23 @@ Item {
                 id: sidebarRegion
 
                 regionName: qsTr("Sidebar")
-                defaultFocus: newConnectionButton
+                defaultFocus: sidebar.defaultFocus
                 visible: shell.sidebarVisible
                 T.SplitView.preferredWidth: Number(LayoutStore.value("sidebarWidth", shell.defaultSidebarWidth))
                 T.SplitView.minimumWidth: Theme.controlHeight * 6
                 T.SplitView.maximumWidth: Math.max(T.SplitView.minimumWidth, shell.width * 0.6)
 
-                ColumnLayout {
+                ConnectionList {
+                    id: sidebar
+
                     anchors.fill: parent
-                    anchors.margins: Theme.spacing * 2
-                    spacing: Theme.spacing * 2
-
-                    Heading {
-                        Layout.fillWidth: true
-                        level: 2
-                        text: qsTr("Connections")
-                    }
-
-                    EmptyState {
-                        Layout.fillWidth: true
-                        Layout.fillHeight: true
-                        iconGlyph: Icons.database
-                        title: qsTr("No connections yet")
-                        message: qsTr("Add a connection to browse its tables and run queries.")
-
-                        QButton {
-                            id: newConnectionButton
-
-                            Layout.alignment: Qt.AlignHCenter
-                            text: cmdNewConnection.title
-                            variant: "primary"
-                            iconGlyph: Icons.plus
-                            onClicked: CommandRegistry.trigger(cmdNewConnection.commandId)
-                        }
-                    }
+                    connections: connectionsCtl
+                    newShortcut: cmdNewConnection.shortcutText
+                    onNewRequested: CommandRegistry.trigger(cmdNewConnection.commandId)
+                    onOpenSqliteRequested: CommandRegistry.trigger(cmdOpenSqlite.commandId)
+                    onEditRequested: id => shell.openConnectionDialog(id, false)
+                    onDuplicateRequested: id => connectionsCtl.duplicate(id)
+                    onDeleteRequested: id => shell.askDelete(id)
                 }
             }
 
@@ -514,7 +591,7 @@ Item {
                 activeFocusOnTab: true
 
                 Accessible.role: Accessible.StaticText
-                Accessible.name: statusText.text
+                Accessible.name: statusText.text + (sidebar.hasCurrent ? ". " + shell.selectedSummary : "")
                 Accessible.focusable: true
 
                 RowLayout {
@@ -536,6 +613,18 @@ Item {
                         font.pointSize: Theme.fontSize
                         color: Theme.fgDefault
                         wrapMode: Text.WordWrap
+                    }
+
+                    // The selected connection (there is no session until H1.4).
+                    Text {
+                        visible: sidebar.hasCurrent
+                        text: qsTr("Selected: %1").arg(sidebar.currentName)
+                        font.pointSize: Theme.fontSize
+                        color: Theme.fgMuted
+                    }
+
+                    ProductionBadge {
+                        visible: sidebar.hasCurrent && sidebar.currentProduction
                     }
                 }
 
@@ -564,37 +653,39 @@ Item {
     }
 
     Loader {
-        id: infoLoader
+        id: connectionLoader
 
         active: false
-        sourceComponent: QDialog {
-            id: info
+        sourceComponent: ConnectionDialog {
+            connections: connectionsCtl
+        }
+    }
 
-            title: qsTr("New connection")
-            width: Math.min(implicitWidth, shell.width - Theme.controlHeight)
-            onOpened: infoOk.forceActiveFocus(Qt.TabFocusReason)
+    Loader {
+        id: deleteLoader
 
-            contentItem: ColumnLayout {
-                spacing: Theme.spacing * 3
+        active: false
+        sourceComponent: DeleteConnectionDialog {
+            onDeleteConfirmed: id => connectionsCtl.remove(id)
+        }
+    }
 
-                Text {
-                    Layout.fillWidth: true
-                    Layout.preferredWidth: Theme.controlHeight * 14
-                    text: qsTr("Connections arrive in the next milestone. Until then there is nothing to connect to.")
-                    font.pointSize: Theme.fontSize
-                    color: Theme.fgDefault
-                    wrapMode: Text.WordWrap
-                }
+    // "Open SQLite file": the platform file dialog, created on first use.
+    Loader {
+        id: pickerLoader
 
-                QButton {
-                    id: infoOk
+        // By URL, not as a type: naming FilePicker here would load QtQuick.Dialogs at startup.
+        active: false
+        source: "FilePicker.qml"
+    }
 
-                    Layout.alignment: Qt.AlignRight
-                    text: qsTr("OK")
-                    variant: "primary"
-                    onClicked: info.close()
-                }
-            }
+    Connections {
+        target: pickerLoader.item
+
+        function onAccepted() {
+            // qmllint disable missing-property
+            connectionsCtl.openSqliteFile(pickerLoader.item["selectedFile"]);
+            // qmllint enable missing-property
         }
     }
 
