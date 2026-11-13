@@ -314,6 +314,43 @@ Cancel button ── directo ──────────▶ IConnection::requ
 - **Timeouts:** conexión 15 s (configurable). Las consultas no tienen timeout por defecto; se cancelan manualmente.
 - Ninguna llamada de red ni de disco pesada en el hilo de UI. `ProviderRegistry` lee los metadatos de los plugins en el arranque sin cargarlos (§8), y `QPluginLoader::load()` se ejecuta en el hilo de sesión la primera vez que se usa el motor.
 
+### 5.1 Contrato del árbol de esquemas (H1.4)
+
+Ampliación de `core` (cabeceras en `src/core/include/quarry/`) que usa `SchemaTreeModel` (app):
+
+```cpp
+namespace quarry {
+class ProviderRegistry {
+    // Lo que hoy hace ConnectionTester, extraído para reutilizarlo. Carga el plugin si hace falta.
+    // Errores: NotFound "This database engine is not available." (detail = motivo del loader);
+    //          Internal "Could not prepare the connection." si el provider devuelve nullptr.
+    Result<std::unique_ptr<IConnection>> createConnection(const ConnectionProfile &profile,
+                                                          const Secrets &secrets);
+};
+
+class Session {
+public slots:
+    // Hijos directos de `parent` (IConnection::children). Se encola en orden con las demás
+    // operaciones; no cancela un execute en curso. Antes de que termine open() espera a él;
+    // si open() falló -> childrenFailed("The connection is not open."). Devuelve un id > 0.
+    quint64 children(const quarry::ObjectPath &parent);
+signals:
+    void childrenReady(quint64 requestId, quarry::ObjectPath parent,
+                       std::vector<quarry::SchemaNode> nodes);
+    // También por cancel()/close(): cada petición pendiente o en curso termina con
+    // childrenFailed(ErrorKind::Cancelled), para que la UI quite su "Loading…".
+    void childrenFailed(quint64 requestId, quarry::ObjectPath parent, quarry::Error error);
+};
+}
+Q_DECLARE_METATYPE(quarry::ObjectPath)
+Q_DECLARE_METATYPE(std::vector<quarry::SchemaNode>)
+```
+
+- Cada conexión desplegada en el árbol tiene su `Session` de metadatos, propiedad del modelo. Desplegar conecta; plegar **no** desconecta; se desconecta con el comando "Disconnect" o al cerrar la app.
+- Contraseña: `Saved` -> `CredentialStore::readPassword`; `AskEveryTime` -> diálogo que guarda la contraseña con `rememberForSession` (solo en memoria hasta cerrar la app); `None` -> sin secretos.
+- `ConnectionTester` pasa a usar `ProviderRegistry::createConnection` (mismo comportamiento y mismos mensajes).
+- shortcut: `ProviderRegistry::provider()` carga el plugin en el hilo de UI, no en el de sesión como dice §5; se moverá cuando haya providers con carga lenta (H1.8).
+
 ## 6. Flujo de una consulta de principio a fin
 
 1. El usuario pulsa **Ctrl/Cmd+Enter** en el editor. `QueryController` obtiene la sentencia bajo el cursor con `dialect().splitStatements()`.

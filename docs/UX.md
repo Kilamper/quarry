@@ -48,7 +48,7 @@ Orden de tabulación: sigue el orden visual (de izquierda a derecha y de arriba 
 |---|---|---|
 | Bienvenida (sin conexiones) | Botones "New connection", "Open SQLite file" y atajos clave | Es en sí misma el estado vacío |
 | Diálogo de conexión | Selector de motor → campos de `connectionFields()`, Advanced plegado, color, "Production", "Save password / Ask every time", "Test connection" | — |
-| Sidebar / árbol | Conexiones y carpetas; esquema bajo demanda | "No connections yet" + botón |
+| Sidebar / árbol | Un solo árbol: las conexiones guardadas son la raíz (con color y PRODUCTION) y su esquema se carga bajo demanda al desplegar | "No connections yet" + botón |
 | Editor | Pestañas, números de línea, sentencia actual resaltada | Placeholder: "Write SQL here. Ctrl+Enter runs the current statement." |
 | Resultados | Grid, contador, tiempo, "Fetch all" | "Run a query to see results here." |
 | Mensajes | Errores, notices, filas afectadas | "No messages." |
@@ -56,6 +56,14 @@ Orden de tabulación: sigue el orden visual (de izquierda a derecha y de arriba 
 | Paleta de comandos | Campo de búsqueda + lista filtrada de comandos con su atajo | "No commands match '…'" |
 | Ajustes | Tema (System/Light/Dark/High contrast), tamaño del texto, animaciones (System/On/Off), filas por página, idioma | — |
 | Confirmaciones de seguridad | SQL afectado, conexión (con su marca de producción), botón destructivo explícito (no por defecto) | — |
+
+### Árbol de esquemas (H1.4)
+
+- Flechas ↑/↓ mueven; → despliega (o baja al primer hijo); ← pliega (o sube al padre); Home/End; Enter despliega o pliega (abrir una tabla llega con el grid en H1.7).
+- Escribir letras salta al siguiente nodo visible cuyo nombre empieza por ese prefijo (se reinicia tras ~1 s sin teclear); no filtra.
+- Mientras carga, el nodo muestra un hijo "Loading…" que se anuncia; si falla, un hijo de error con "Retry" y el detalle técnico.
+- Desplegar una conexión conecta; plegarla no desconecta. "Disconnect" está en el menú contextual (Shift+F10 / tecla Menú) y en la paleta. Un nodo conectado lo indica con icono y texto, no solo con color.
+- El lector de pantalla anuncia nombre, nivel, estado plegado/desplegado y posición ("Tables, expanded, 3 of 5").
 
 ## 4. Atajos de teclado
 
