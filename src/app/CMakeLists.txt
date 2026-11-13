@@ -70,9 +70,11 @@ quarry_app_warnings(
 
 qt_add_executable(quarry main.cpp)
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    # DT_RPATH (not RUNPATH) also applies to transitive deps: vcpkg's libqt6keychain.so needs
-    # libQt6DBus from the aqt Qt dir, which its own RUNPATH does not list.
-    target_link_options(quarry PRIVATE -Wl,--disable-new-dtags)
+    # vcpkg's libqt6keychain.so has RUNPATH=$ORIGIN, so it cannot find libQt6DBus in the aqt Qt dir.
+    # Linking DBus here loads it through the executable's own RUNPATH first (no symbol is used,
+    # hence --no-as-needed).
+    find_package(Qt6 REQUIRED COMPONENTS DBus)
+    target_link_libraries(quarry PRIVATE -Wl,--no-as-needed Qt6::DBus -Wl,--as-needed)
 endif()
 
 qt_add_qml_module(quarry
