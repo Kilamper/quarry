@@ -71,6 +71,7 @@ Orden de tabulación: sigue el orden visual (de izquierda a derecha y de arriba 
 | Cerrar pestaña | Mod+W |
 | Pestaña siguiente / anterior | Ctrl+Tab / Ctrl+Shift+Tab |
 | Nueva conexión | Mod+Shift+N |
+| Abrir archivo SQLite | Mod+O |
 | Recorrer regiones | F6 / Shift+F6 |
 | Ir a árbol / editor / resultados | Mod+1 / Mod+2 / Mod+3 |
 | Buscar en el editor / en el grid | Mod+F |
@@ -81,6 +82,8 @@ Orden de tabulación: sigue el orden visual (de izquierda a derecha y de arriba 
 | Menú contextual | Shift+F10 / tecla Menú |
 | Ajustes | Mod+, |
 | Aumentar / reducir / restablecer zoom | Mod+= / Mod+- / Mod+0 |
+
+Editar, duplicar y borrar conexión (`connection.edit`, `connection.duplicate`, `connection.delete`) no tienen atajo global: se usan desde la paleta, el menú contextual de la lista o la tecla Supr en la lista, y solo se activan con una conexión seleccionada.
 
 Todos los atajos aparecen en la paleta de comandos junto a su comando; así se pueden descubrir sin documentación. Un atajo no puede ser solo una letra sin modificador fuera de los campos de texto (WCAG 2.1.4).
 

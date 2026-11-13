@@ -8,7 +8,7 @@ Estados: `pendiente` · `en curso` · `hecho` · `bloqueado`
 |---|---|---|
 | F0 | Entorno de desarrollo (Windows verificado) | hecho |
 | H0 | Esqueleto + CI en los tres sistemas | hecho (2026-11-12) |
-| H1 | Versión mínima (subhitos 1.1–1.8) | en curso (1.1–1.2 hechos) |
+| H1 | Versión mínima (subhitos 1.1–1.8) | en curso (1.1–1.3 hechos) |
 | H2 | Edición de datos | pendiente |
 | H3 | Autocompletado | pendiente |
 | H4 | Historial y consultas guardadas | pendiente |
@@ -83,7 +83,7 @@ Criterios:
 - Además: paleta de comandos (Mod+K / Mod+Shift+P), Ajustes (Mod+,), comandos para mostrar y ocultar paneles y restablecer el diseño, interfaz en español (79 textos) con cambio de idioma en caliente.
 - Sin probar: la pasada manual con lectores de pantalla (`docs/a11y-checklist.md`) y si se anuncia bien el elemento activo de la paleta.
 
-### H1.3 — Conexiones y credenciales
+### H1.3 — Conexiones y credenciales · **hecho (2026-11-13)**
 - `AppDatabase` (`quarry.db`, migraciones) y `ConnectionStore`.
 - Diálogo de conexión generado a partir de `connectionFields()`, con la sección avanzada plegada y el botón "Test connection".
 - `CredentialStore` (QtKeychain) con "Save password" o "Ask every time".
@@ -91,9 +91,12 @@ Criterios:
 - Estado vacío: "No connections yet: create one or open a SQLite file", con botones.
 
 Criterios:
-- [ ] Tras guardar una conexión, `quarry.db` no contiene la contraseña (test que busca la cadena en el archivo).
-- [ ] La contraseña se lee del llavero en Windows y macOS (manual) y en Linux (CI, con `gnome-keyring` en modo headless).
-- [ ] Un fallo de autenticación muestra un mensaje claro y el detalle técnico desplegable.
+- [x] Tras guardar una conexión, `quarry.db` no contiene la contraseña (`tst_connection_store::secretsAreNeverWritten` busca la cadena en el archivo; `tst_connection_controller` comprueba que los campos secretos se eliminan antes de guardar).
+- [x] La contraseña se escribe y se lee del llavero real en Windows (Credential Manager, `QUARRY_TEST_KEYCHAIN=1`) y en Linux (CI, `gnome-keyring` headless). macOS: pendiente de la prueba manual.
+- [x] Un fallo de conexión muestra un mensaje claro, el detalle técnico plegado y lo anuncia al lector de pantalla (`tst_connections.qml`).
+- Además: lista de conexiones con estado vacío, diálogo generado desde `connectionFields()` (sección avanzada plegada, "Test connection" cancelable), color por conexión, marca PRODUCTION (texto + icono) que exige escribir el nombre para borrar, duplicar, abrir archivo SQLite (Mod+O), todo con teclado y recorrido por el walker de accesibilidad. 160 textos en español.
+- Arranque: el escaneo de providers y el hilo del store salen del camino de arranque (después del primer frame). La mediana medida fue 786 ms con la máquina cargada por otro proceso; el árbol anterior medía lo mismo con la misma carga (768 vs 770 ms). **Pendiente** repetir `--bench-startup` en una máquina tranquila (objetivo ≤ 400 ms).
+- Sin probar: la pasada manual con lectores de pantalla del diálogo de conexión; compilación local en Linux/macOS (solo CI). El área desplazable del diálogo no tiene barra de desplazamiento visible.
 
 ### H1.4 — Árbol de esquemas bajo demanda
 - `SchemaTreeModel` (QAbstractItemModel) con `canFetchMore`/`fetchMore` por nodo y una sesión de metadatos propia.

@@ -434,13 +434,16 @@ class ConnectionTester : public QObject {          // usa ProviderRegistry + Ses
 Reglas:
 - `quarry.db` **nunca** contiene contraseñas, y `values` no puede llevar un campo de tipo `ConnectionField::Kind::Secret` (`ConnectionStore` los elimina antes de guardar).
 - Si el llavero no está disponible, `CredentialStore` falla con un `Error` claro ("The system keychain is not available…") y la UI ofrece "Ask every time". **Nunca** hay un respaldo en disco.
-- Borrar una conexión: `ConnectionStore::remove` y después `CredentialStore::deletePassword`, que orquesta la app.
+- Borrar una conexión: `ConnectionStore::remove` y después `CredentialStore::deletePassword`, que orquesta la app. `deletePassword` solo se llama si el modo era `Saved` (así no se toca el llavero sin necesidad); `forgetForSession` se llama siempre.
+- Guardar con `Saved`: primero se escribe en el llavero y después en `quarry.db`. Si el llavero falla, no se guarda nada y el diálogo ofrece cambiar a "Ask every time".
+- Duplicar conserva el modo de contraseña pero no copia la contraseña. Abrir un archivo SQLite que ya está guardado selecciona esa conexión en vez de crear otra.
 - Implementación (H1.3): `failed(Error)` de `ConnectionStore` no indica la operación; `load()` ordena por nombre; `lastUsedAt` solo lo cambia `touch()`. `ConnectionTester` emite siempre desde el event loop, nunca dentro de `test()`. Tras recargar, los números de `values` pueden ser `double`/`qint64`: usa `toInt()`.
 - Fuera de H1.3: carpetas de conexiones, modo de solo lectura e importar/exportar conexiones.
 
 ## 12. Arranque rápido
 
-- No se carga ningún provider ni se abre ninguna conexión en el arranque. Las vistas QML se crean con `Loader { asynchronous: true }` salvo el esqueleto de la ventana principal.
+- No se carga ningún provider ni se abre ninguna conexión en el arranque. El escaneo de providers (solo metadatos) y el hilo de `ConnectionStore` arrancan en `ConnectionController::start()`, después del primer frame.
+- Los diálogos del sistema (`QtQuick.Dialogs`, para elegir el archivo SQLite) se cargan con un `Loader` por URL al usarse por primera vez, no en el arranque. Es una dependencia de despliegue: H10 debe incluir los DLL de Qt6QuickDialogs2 y su plugin QML. Las vistas QML se crean con `Loader { asynchronous: true }` salvo el esqueleto de la ventana principal.
 - QML precompilado con **qmlcachegen** (y `qmlsc` cuando esté disponible), con `qt_add_qml_module`, para evitar compilar QML en tiempo de ejecución.
 - KSyntaxHighlighting y su `Repository` (definiciones) se inicializan al abrir el primer editor, no en el arranque.
 - Las medidas y los presupuestos están en [PERFORMANCE.md](PERFORMANCE.md).
