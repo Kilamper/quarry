@@ -69,6 +69,11 @@ quarry_app_warnings(
     ui/theme_manager.cpp ui/theme_tokens.cpp)
 
 qt_add_executable(quarry main.cpp)
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    # DT_RPATH (not RUNPATH) also applies to transitive deps: vcpkg's libqt6keychain.so needs
+    # libQt6DBus from the aqt Qt dir, which its own RUNPATH does not list.
+    target_link_options(quarry PRIVATE -Wl,--disable-new-dtags)
+endif()
 
 qt_add_qml_module(quarry
     URI Quarry

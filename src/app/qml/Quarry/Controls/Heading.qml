@@ -9,7 +9,7 @@ T.Label {
     font.pointSize: Theme.fontSize * (level === 1 ? 1.6 : level === 2 ? 1.3 : 1.1)
     font.bold: true
     color: Theme.fgDefault
-    wrapMode: Text.WordWrap
+    wrapMode: Text.Wrap // a single long word (zoom, translations) breaks instead of overflowing
 
     Accessible.role: Accessible.Heading
     Accessible.name: text
