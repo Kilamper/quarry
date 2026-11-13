@@ -55,7 +55,7 @@ elif [[ "$OS" == "Linux" ]]; then
     step "System packages (needs sudo)"
     if have apt-get; then
         pkgs=(build-essential cmake ninja-build git python3-pip python3-venv curl zip unzip tar pkg-config
-              autoconf autoconf-archive automake libtool
+              autoconf autoconf-archive automake libtool libsecret-1-dev
               libgl1-mesa-dev libxkbcommon-dev libxkbcommon-x11-0 libxcb-cursor0 libfontconfig1-dev libegl1
               libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-shape0 libxcb-xinerama0 libxcb-xkb1)
         missing=()
@@ -68,14 +68,14 @@ elif [[ "$OS" == "Linux" ]]; then
         echo "Fedora detected (best effort; package names may need adjusting)."
         confirm "Run 'sudo dnf install' of the build and Qt runtime packages?" || { echo "Aborted."; exit 1; }
         sudo dnf install -y gcc-c++ cmake ninja-build git python3-pip curl zip unzip tar pkgconf \
-            autoconf autoconf-archive automake libtool \
+            autoconf autoconf-archive automake libtool libsecret-devel \
             mesa-libGL-devel libxkbcommon-devel libxkbcommon-x11 xcb-util-cursor fontconfig-devel mesa-libEGL \
             xcb-util-wm xcb-util-image xcb-util-keysyms xcb-util-renderutil
     elif have pacman; then
         echo "Arch detected (best effort)."
         confirm "Run 'sudo pacman -S --needed' of the build and Qt runtime packages?" || { echo "Aborted."; exit 1; }
         sudo pacman -S --needed --noconfirm base-devel cmake ninja git python python-pip curl zip unzip tar pkgconf \
-            autoconf-archive \
+            autoconf-archive libsecret \
             mesa libxkbcommon libxkbcommon-x11 xcb-util-cursor fontconfig xcb-util-wm xcb-util-image \
             xcb-util-keysyms xcb-util-renderutil
     else
