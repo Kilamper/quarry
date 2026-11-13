@@ -11,6 +11,8 @@ x
 plus
 chevron-right
 chevron-down
+check
+minus
 ellipsis
 
 # Connections / schema tree (H1.3-H1.4)

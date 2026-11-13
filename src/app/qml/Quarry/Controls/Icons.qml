@@ -5,7 +5,7 @@ import QtQuick
 
 QtObject {
     readonly property string fontFamily: iconFont.name
-    readonly property FontLoader iconFont: FontLoader { source: "qrc:/qt/qml/Quarry/assets/icons/lucide-subset.ttf" }
+    readonly property FontLoader iconFont: FontLoader { source: "lucide-subset.ttf" }
 
     readonly property string panelLeft: "\ue12a"
     readonly property string panelBottom: "\ue42c"
@@ -16,6 +16,8 @@ QtObject {
     readonly property string plus: "\ue13d"
     readonly property string chevronRight: "\ue06f"
     readonly property string chevronDown: "\ue06d"
+    readonly property string check: "\ue06c"
+    readonly property string minus: "\ue11c"
     readonly property string ellipsis: "\ue0b6"
     readonly property string database: "\ue0ad"
     readonly property string server: "\ue153"

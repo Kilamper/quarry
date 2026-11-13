@@ -13,7 +13,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # src/app/Quarry on case-insensitive file systems (macOS).
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 
-find_package(Qt6 ${QUARRY_QT_VERSION} EXACT REQUIRED COMPONENTS Core Gui Qml Quick QuickControls2 Test)
+find_package(Qt6 ${QUARRY_QT_VERSION} EXACT REQUIRED COMPONENTS Core Gui Qml Quick QuickControls2 QuickTemplates2 QuickTest Test)
 qt_standard_project_setup(REQUIRES ${QUARRY_QT_VERSION})
 
 include(cmake/QuarryHelpers.cmake)

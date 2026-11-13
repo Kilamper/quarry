@@ -5,6 +5,7 @@ Inputs : third_party/lucide/lucide.ttf + info.json (pinned upstream copy, ISC li
          scripts/icons.txt (one Lucide icon name per line, '#' comments allowed)
 Outputs: src/app/assets/icons/lucide-subset.ttf
          src/app/qml/Quarry/Controls/Icons.qml  (singleton: property string <camelName>: "\\uXXXX")
+         The font is aliased next to Icons.qml in the Quarry.Controls resources (src/app/CMakeLists.txt).
 
 Usage: python scripts/subset_icons.py   (dev-only; needs `pip install fonttools`)
 Re-run after editing scripts/icons.txt and commit both outputs.
@@ -71,7 +72,7 @@ def main() -> int:
         "",
         "QtObject {",
         '    readonly property string fontFamily: iconFont.name',
-        '    readonly property FontLoader iconFont: FontLoader { source: "qrc:/qt/qml/Quarry/assets/icons/lucide-subset.ttf" }',
+        '    readonly property FontLoader iconFont: FontLoader { source: "lucide-subset.ttf" }',
         "",
     ]
     for n in names:

@@ -42,7 +42,8 @@ Dependencias permitidas: `app` → `core` (nunca un provider); `providers` → `
 - Comentarios: solo el *porqué* que el código no muestra. Los atajos con límite conocido llevan `// shortcut: <límite>, <cuándo mejorarlo>`.
 
 ## QML y UI
-- Solo componentes de `Quarry.Controls` (estilo propio sobre Basic); nada de colores literales, todo con tokens de `Theme`.
+- Solo componentes de `Quarry.Controls` (estilo propio sobre Templates/Basic); nada de colores ni medidas literales, todo con tokens y métricas de `Theme`. Los controles que sustituyen a uno de Qt llevan el prefijo `Q` (`QButton`, `QTextField`, `QCheckBox`, `QComboBox`, `QMenu`, `QMenuItem`, `QToolTip`, `QDialog`, `QSplitView`, `QTabBar`, `QTabButton`); los propios de Quarry no (`IconButton`, `Icon`, `FocusRing`, `Heading`). Un `IconButton` exige `accessibleName`.
+- Iconos: añádelos a `scripts/icons.txt` y regenera con `python scripts/subset_icons.py` (necesita fonttools); nunca edites `Icons.qml` a mano.
 - Todo control interactivo tiene `Accessible.role`/`Accessible.name` (traducible), foco visible, orden de tabulación lógico y funciona solo con teclado (UX.md §2). Los cambios asíncronos se anuncian con `Accessible.announce`.
 - Textos: inglés en el código con `qsTr()`/`tr()`; traducción en `src/app/i18n/quarry_es.ts`.
 - Respeta `Theme.animationDuration` (0 con movimiento reducido). Ninguna información se transmite solo por color.

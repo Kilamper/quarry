@@ -4,6 +4,7 @@
 #include <QLoggingCategory>
 #include <QQmlApplicationEngine>
 #include <QQmlError>
+#include <QStyleHints>
 #include <QTimer>
 
 #include <cstdio>
@@ -17,6 +18,9 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationDomain(QStringLiteral("quarry.dev"));
     QCoreApplication::setApplicationName(QStringLiteral("Quarry"));
     QCoreApplication::setApplicationVersion(QStringLiteral("0.0.1"));
+
+    // Keyboard-only use is a requirement: every control takes Tab focus on every platform.
+    QGuiApplication::styleHints()->setTabFocusBehavior(Qt::TabFocusAllControls);
 
     const bool smoke = app.arguments().contains(QStringLiteral("--smoke"));
 

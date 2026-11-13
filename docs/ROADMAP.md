@@ -70,7 +70,7 @@ Criterios:
 ### H1.2 — Shell de la aplicación, tema y componentes base
 - Ventana principal: barra lateral, área de pestañas, panel de resultados y barra de estado (UX.md §3).
 - `ThemeManager`: claro, oscuro y alto contraste, siguiendo `QStyleHints::colorScheme` y `accessibility()->contrastPreference/motionPreference`, con posibilidad de forzarlos desde los ajustes.
-- Componentes del estilo propio: `QuarryButton`, `TextField`, `ComboBox`, `CheckBox`, `Dialog`, `Menu`, `ToolTip`, `SplitView`, `TabBar`, con foco visible y `Accessible.*`.
+- Componentes del estilo propio (`Quarry.Controls`): `QButton`, `IconButton`, `QTextField`, `QComboBox`, `QCheckBox`, `QDialog`, `QMenu`, `QToolTip`, `QSplitView`, `QTabBar`, `FocusRing`, `Heading`, con foco visible y `Accessible.*`.
 - Paleta de comandos (Ctrl/Cmd+K) con `CommandRegistry`.
 - i18n: `qt_add_translations`, `quarry_es.ts`.
 
