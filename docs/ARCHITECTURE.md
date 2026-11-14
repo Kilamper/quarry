@@ -478,6 +478,36 @@ Reglas:
 - Implementación (H1.3): `failed(Error)` de `ConnectionStore` no indica la operación; `load()` ordena por nombre; `lastUsedAt` solo lo cambia `touch()`. `ConnectionTester` emite siempre desde el event loop, nunca dentro de `test()`. Tras recargar, los números de `values` pueden ser `double`/`qint64`: usa `toInt()`.
 - Fuera de H1.3: carpetas de conexiones, modo de solo lectura e importar/exportar conexiones.
 
+### 11.2 Contrato de pestañas del editor (H1.5)
+
+Las pestañas del editor y su texto se guardan en `quarry.db` para que nunca se pierda lo escrito. Mismo patrón que `ConnectionStore`: QObject del hilo de UI, trabajo en un hilo de `core`, resultados por señales en cola.
+
+```cpp
+namespace quarry {
+struct EditorTab {
+    QUuid id;                           // nulo = nueva (el store genera uno)
+    std::optional<QUuid> connectionId;  // nullopt = pestaña sin conexión
+    QString title;                      // "Query 1"…; no vacío
+    QString text;
+    int cursorPosition = 0;
+    int position = 0;                   // orden en la barra de pestañas
+    QDateTime updatedAt;                // UTC, lo fija el store
+};
+
+class EditorTabStore : public QObject {           // tabla `editor_tabs` (migración 2)
+    explicit EditorTabStore(QString databasePath, QObject *parent = nullptr);
+    ~EditorTabStore() override;                   // termina las escrituras en cola y une el hilo (≤ 5 s)
+    void load();                                  // -> loaded(QList<EditorTab>) ordenadas por position | failed(Error)
+    void save(quarry::EditorTab tab);             // inserta o actualiza -> saved(EditorTab) | failed(Error)
+    void remove(QUuid id);                        // -> removed(QUuid) (también si no existía) | failed(Error)
+};
+}
+```
+
+- `editor_tabs(id, connection_id REFERENCES connections(id) ON DELETE SET NULL, title, text, cursor_position, position, updated_at)`: borrar una conexión deja sus pestañas sin conexión, no las borra.
+- Las migraciones viven en un solo sitio de `core` (`AppDatabase`), compartido por `ConnectionStore` y `EditorTabStore`, y son seguras si los dos abren `quarry.db` a la vez (transacción `BEGIN IMMEDIATE`).
+- La app guarda con *debounce* (~1 s tras la última tecla) y al cerrar la pestaña o la app; el destructor del store garantiza que esas escrituras terminan.
+
 ## 12. Arranque rápido
 
 - No se carga ningún provider ni se abre ninguna conexión en el arranque. El escaneo de providers (solo metadatos) y el hilo de `ConnectionStore` arrancan en `ConnectionController::start()`, después del primer frame.

@@ -67,6 +67,13 @@ Orden de tabulación: sigue el orden visual (de izquierda a derecha y de arriba 
 - Filas sintéticas: "Loading…" (anuncio educado); error (anuncio enérgico; Enter reintenta, Espacio despliega el detalle, Mod+C lo copia); "(empty)" cuando un nodo con hijos responde sin ninguno, para que nunca se anuncie "expanded" sobre nada.
 - Los cambios al editar una conexión conectada se aplican al reconectar.
 
+### Editor SQL (H1.5)
+
+- Mod+T abre una pestaña asociada a la conexión del nodo actual del árbol (o a la de la pestaña activa). Sin ninguna, la pestaña queda sin conexión y muestra "Choose a connection"; la conexión se cambia desde la cabecera de la pestaña. La pestaña muestra el color y PRODUCTION de su conexión.
+- Las pestañas y su texto se guardan solos y se restauran al abrir la app. Mod+W cierra la pestaña; si tiene texto, pide confirmación (cerrar borra su texto guardado).
+- Mod+Enter / Mod+Shift+Enter: en H1.5 resaltan la sentencia actual / todas (con `splitStatements` del dialecto) y lo anuncian ("Statement 2 of 5, lines 4–7"); la ejecución llega en H1.6. La sentencia bajo el cursor siempre se ve resaltada.
+- Números de línea y "Ln 12, Col 3" en la barra de estado. Buscar y reemplazar (Mod+F) llega en un hito posterior.
+
 ## 4. Atajos de teclado
 
 `Mod` = Ctrl en Windows/Linux y Cmd en macOS. Se usa `QKeySequence::StandardKey` cuando existe uno equivalente.
