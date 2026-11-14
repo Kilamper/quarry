@@ -774,6 +774,9 @@ Item {
 
                     // The cursor of the current editor.
                     Text {
+                        // Never cut: the other status items give way first.
+                        Layout.minimumWidth: implicitWidth
+                        Layout.preferredWidth: implicitWidth
                         visible: shell.cursorSummary !== ""
                         text: shell.cursorSummary
                         font.pointSize: Theme.fontSize

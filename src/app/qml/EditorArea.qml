@@ -203,6 +203,8 @@ ColumnLayout {
     }
 
     StackLayout {
+        id: stack
+
         Layout.fillWidth: true
         Layout.fillHeight: true
         visible: root.tabs.count > 0
@@ -227,6 +229,10 @@ ColumnLayout {
                 required property bool production
                 property bool shown: false
 
+                // Sized from the stack itself: a Loader that turns active after the stack's last
+                // layout pass would otherwise stay 0x0 until the next one (seen on Linux CI).
+                width: stack.width
+                height: stack.height
                 active: shown || StackLayout.isCurrentItem
                 onItemChanged: root.editorRevision++
                 StackLayout.onIsCurrentItemChanged: {
