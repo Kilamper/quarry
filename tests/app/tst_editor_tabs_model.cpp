@@ -230,13 +230,13 @@ private slots:
         QTRY_COMPARE_WITH_TIMEOUT(stored().size(), 1, kLoadMs);
         m->setText(0, QStringLiteral("a"));
         m->setText(0, QStringLiteral("ab"));
-        QCOMPARE(stored().at(0).text, QString()); // not yet: the debounce is running
+        QCOMPARE(stored().value(0).text, QString()); // not yet: the debounce is running
         m->setText(0, QStringLiteral("abc"));
-        QTRY_COMPARE_WITH_TIMEOUT(stored().at(0).text, QStringLiteral("abc"), kLoadMs);
+        QTRY_COMPARE_WITH_TIMEOUT(stored().value(0).text, QStringLiteral("abc"), kLoadMs);
         m->setSaveDelay(60000);
         m->setText(0, QStringLiteral("abcd"));
         m->flush();
-        QTRY_COMPARE_WITH_TIMEOUT(stored().at(0).text, QStringLiteral("abcd"), kLoadMs);
+        QTRY_COMPARE_WITH_TIMEOUT(stored().value(0).text, QStringLiteral("abcd"), kLoadMs);
     }
 
     void destroyingTheModelFlushes()
@@ -267,7 +267,7 @@ private slots:
         QVERIFY(!m->hasText(0));
         m->closeTab(1);
         QTRY_COMPARE_WITH_TIMEOUT(stored().size(), 1, kLoadMs);
-        QCOMPARE(stored().at(0).title, QStringLiteral("Query 1"));
+        QCOMPARE(stored().value(0).title, QStringLiteral("Query 1"));
     }
 
     void connectionChangeIsStoredAtOnce()
@@ -279,8 +279,8 @@ private slots:
         QSignalSpy changed(m.get(), &EditorTabsModel::dataChanged);
         m->setConnection(0, conn);
         QVERIFY(!changed.isEmpty());
-        QTRY_VERIFY_WITH_TIMEOUT(stored().at(0).connectionId.has_value(), kLoadMs);
-        QCOMPARE(idOf(*stored().at(0).connectionId), conn);
+        QTRY_VERIFY_WITH_TIMEOUT(stored().value(0).connectionId.has_value(), kLoadMs);
+        QCOMPARE(idOf(*stored().value(0).connectionId), conn);
         QCOMPARE(m->index(0).data(EditorTabsModel::ConnectionNameRole).toString(),
                  QStringLiteral("x"));
         QCOMPARE(m->index(0).data(EditorTabsModel::ColorIndexRole).toInt(), 2);
@@ -302,8 +302,8 @@ private slots:
         QCOMPARE(m->connectionIdOf(0), QString());
         m->flush(); // the pending text is saved without the dead connection id
         QTRY_VERIFY_WITH_TIMEOUT(
-            stored().size() == 1 && stored().at(0).text == QLatin1String("select 1"), kLoadMs);
-        QVERIFY(!stored().at(0).connectionId.has_value());
+            stored().size() == 1 && stored().value(0).text == QLatin1String("select 1"), kLoadMs);
+        QVERIFY(!stored().value(0).connectionId.has_value());
     }
 
     void aTabOpenedBeforeTheLoadSurvivesIt()

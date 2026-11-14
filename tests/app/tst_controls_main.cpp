@@ -1,3 +1,5 @@
+#include "test_screen.h"
+
 #include <QAccessible>
 #include <QFileInfo>
 #include <QGuiApplication>
@@ -86,6 +88,7 @@ class Setup : public QObject
 public slots:
     void applicationAvailable()
     {
+        quarry::testing::ScreenPlacer::install();
         QCoreApplication::setOrganizationName(QStringLiteral("QuarryTest"));
         QCoreApplication::setApplicationName(QStringLiteral("tst_controls"));
         QSettings::setDefaultFormat(QSettings::IniFormat);

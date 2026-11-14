@@ -518,7 +518,10 @@ TestCase {
         ed.edit.text = bigText(10000);
         tryCompare(ed.edit, "lineCount", 10000);
         const numbers = () => walker.findAll(ed, i => i.lineNumber !== undefined && i.visible);
-        tryVerify(() => numbers().length > 5); // the gutter follows the layout a pass later
+        // The gutter follows the layout a pass later (a polled wait, to say why when it gives up).
+        for (let i = 0; i < 100 && numbers().length <= 5; ++i)
+            wait(50);
+        verify(numbers().length > 5, "gutter items " + numbers().length + ", editor " + ed.width + "x" + ed.height + ", viewport " + ed.flick.height + ", contentY " + ed.flick.contentY + ", lineHeight " + ed.lineHeight + ", lines " + ed.firstVisibleLine + ".." + ed.lastVisibleLine + " of " + ed.edit.lineCount + ", visible " + ed.visible);
         verify(numbers().length < 120, numbers().length + " number items for 10 000 lines");
         compare(numbers()[0].text, "1");
         // The gutter is as wide as the largest number.

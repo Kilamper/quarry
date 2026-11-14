@@ -1,5 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
+import QtQuick.Layouts
 import QtQuick.Templates as T
 
 // Tab. With closable: true a close button is shown (accessible name "Close <tab>"), and Delete
@@ -37,33 +38,56 @@ T.TabButton {
             control.closeRequested();
     }
 
-    contentItem: Row {
-        spacing: Theme.spacing
+    // One line: decoration, title, badge, close. When the tab is too narrow for that (200% zoom,
+    // long names) the badge drops to a second line instead of being pushed out of the tab.
+    contentItem: GridLayout {
+        readonly property bool fits: control.availableWidth >= leadingRow.implicitWidth + titleText.implicitWidth + trailingRow.implicitWidth + closeButton.implicitWidth + columnSpacing * 3
 
-        Row {
+        columns: 4
+        columnSpacing: Theme.spacing
+        rowSpacing: 0
+
+        RowLayout {
             id: leadingRow
 
-            anchors.verticalCenter: parent.verticalCenter
+            Layout.row: 0
+            Layout.column: 0
+            Layout.alignment: Qt.AlignVCenter
+            visible: implicitWidth > 0
             spacing: Theme.spacing
         }
 
         Text {
-            anchors.verticalCenter: parent.verticalCenter
+            id: titleText
+
+            Layout.row: 0
+            Layout.column: 1
+            Layout.fillWidth: true
+            Layout.minimumWidth: 0
+            Layout.alignment: Qt.AlignVCenter
             text: control.text
             font: control.font
             color: control.checked ? Theme.fgDefault : Theme.fgMuted
             elide: Text.ElideRight
         }
 
-        Row {
+        RowLayout {
             id: trailingRow
 
-            anchors.verticalCenter: parent.verticalCenter
+            Layout.row: parent.fits ? 0 : 1
+            Layout.column: parent.fits ? 2 : 0
+            Layout.columnSpan: parent.fits ? 1 : 4
+            Layout.alignment: Qt.AlignVCenter
+            visible: implicitWidth > 0
             spacing: Theme.spacing
         }
 
         IconButton {
-            anchors.verticalCenter: parent.verticalCenter
+            id: closeButton
+
+            Layout.row: 0
+            Layout.column: 3
+            Layout.alignment: Qt.AlignVCenter
             visible: control.closable
             accessibleName: qsTr("Close %1").arg(control.text)
             iconGlyph: Icons.x

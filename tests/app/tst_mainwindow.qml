@@ -135,6 +135,9 @@ TestCase {
 
     function init() {
         closeOverlays();
+        // A tab left open by an earlier test (or a failed one) would take Tab keys into the editor.
+        while (shell.editorTabs.count > 0)
+            shell.editorTabs.closeTab(0);
         Theme.mode = Theme.Mode.System;
         Theme.density = Theme.Density.Compact;
         Theme.animations = Theme.Animations.System;

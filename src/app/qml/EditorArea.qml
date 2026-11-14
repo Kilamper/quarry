@@ -142,13 +142,24 @@ ColumnLayout {
 
     // The connection of the current tab: its color and PRODUCTION are in the tab, the name and the
     // chooser here.
-    RowLayout {
+    // On one line when it fits; otherwise the PRODUCTION badge drops below instead of squeezing
+    // the chooser (its name would be elided) or leaving the window at 200% zoom.
+    GridLayout {
+        id: connectionRow
+
+        readonly property bool fits: width >= connectionLabel.implicitWidth + combo.implicitWidth + connectionBadge.implicitWidth + columnSpacing * 2
+
         Layout.fillWidth: true
         Layout.margins: Theme.spacing
         visible: root.tabs.count > 0
-        spacing: Theme.spacing * 2
+        columns: 3
+        columnSpacing: Theme.spacing * 2
+        rowSpacing: Theme.spacing
 
         Text {
+            id: connectionLabel
+
+            Layout.alignment: Qt.AlignVCenter
             text: qsTr("Connection")
             font.pointSize: Theme.fontSize
             color: Theme.fgMuted
@@ -169,11 +180,12 @@ ColumnLayout {
         }
 
         ProductionBadge {
-            visible: root.currentEditor?.production ?? false
-        }
+            id: connectionBadge
 
-        Item {
-            Layout.fillWidth: true
+            Layout.row: connectionRow.fits ? 0 : 1
+            Layout.column: connectionRow.fits ? 2 : 1
+            Layout.alignment: Qt.AlignVCenter
+            visible: root.currentEditor?.production ?? false
         }
     }
 

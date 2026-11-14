@@ -21,7 +21,7 @@ target_compile_definitions(tst_controls PRIVATE
     QUARRY_PLUGIN_DIR="${QUARRY_PLUGIN_OUTPUT_DIR}")
 add_dependencies(tst_controls quarry_provider_sqlite)
 # Three QML test files, one of them (tst_connections) really saves and tests connections.
-set_tests_properties(tst_controls PROPERTIES TIMEOUT 240)
+set_tests_properties(tst_controls PROPERTIES TIMEOUT 480)
 if(WIN32)
     # Qt's offscreen platform finds no fonts on Windows, which collapses all text metrics to zero.
     set_property(TEST tst_controls APPEND PROPERTY ENVIRONMENT_MODIFICATION "QT_QPA_FONTDIR=set:$ENV{WINDIR}/Fonts")

@@ -6,6 +6,7 @@
 //   frame      = the same, plus the scene graph polish/sync/render of the window (grabWindow)
 // Run it by hand (Qt's bin directory on PATH on Windows):
 //   build/windows-release/bench_editor.exe [lines]
+#include "../../tests/app/test_screen.h"
 #include "ui/connection_controller.h"
 #include "ui/editor_tabs_model.h"
 #include "ui/sql_document.h"
@@ -95,6 +96,7 @@ static void sendKey(QWindow *window, Qt::Key key)
 static int run(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
+    quarry::testing::ScreenPlacer::install();
     QCoreApplication::setOrganizationName(QStringLiteral("QuarryBench"));
     QCoreApplication::setApplicationName(QStringLiteral("bench_editor"));
     QStandardPaths::setTestModeEnabled(true);
