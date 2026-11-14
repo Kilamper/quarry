@@ -280,7 +280,9 @@ private slots:
         m->setConnection(0, conn);
         QVERIFY(!changed.isEmpty());
         QTRY_VERIFY_WITH_TIMEOUT(stored().value(0).connectionId.has_value(), kLoadMs);
-        QCOMPARE(idOf(*stored().value(0).connectionId), conn);
+        const auto storedConnection = stored().value(0).connectionId;
+        QVERIFY(storedConnection.has_value());
+        QCOMPARE(idOf(storedConnection.value_or(QUuid())), conn);
         QCOMPARE(m->index(0).data(EditorTabsModel::ConnectionNameRole).toString(),
                  QStringLiteral("x"));
         QCOMPARE(m->index(0).data(EditorTabsModel::ColorIndexRole).toInt(), 2);
