@@ -31,6 +31,7 @@ qt_add_library(quarry_core STATIC
     include/quarry/editor_tab_store.h
     include/quarry/provider_registry.h
     include/quarry/session.h
+    include/quarry/sql_safety.h
     src/app_database.h
     src/app_database.cpp
     src/connection_store.cpp
@@ -45,6 +46,9 @@ qt_add_library(quarry_core STATIC
     src/session.cpp
     src/session_worker.h
     src/session_worker.cpp
+    src/sql_lexer.h
+    src/sql_lexer.cpp
+    src/sql_safety.cpp
 )
 target_include_directories(quarry_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(quarry_core PUBLIC quarry_provider_api Qt6::Core
