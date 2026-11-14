@@ -420,6 +420,12 @@ TestCase {
         ticker.running = true;
         wait(700);
         console.log("IDLE max event-loop gap " + ticker.maxGap + " ms");
+        // A machine that already stalls this long doing nothing (the macOS CI runners: ~90 ms)
+        // cannot measure a 50 ms budget; the budget is checked where the floor is low.
+        if (ticker.maxGap > testMaxGapMs / 2) {
+            ticker.running = false;
+            skip("idle event-loop gap " + ticker.maxGap + " ms: too noisy to measure a " + testMaxGapMs + " ms budget");
+        }
         // Three cold expands (disconnect in between, so each one fetches and builds the rows
         // again): the median is asserted, because single 24-36 ms spikes inside Qt Quick come and
         // go with machine load (same rule as the startup bench, PERFORMANCE.md).
