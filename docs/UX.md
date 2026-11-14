@@ -77,7 +77,15 @@ Orden de tabulación: sigue el orden visual (de izquierda a derecha y de arriba 
 - Cabecera de la pestaña: punto de color, título, PRODUCTION y botón de cerrar; debajo, la fila con el selector de conexión. Los títulos ("Query N", traducido) son únicos entre las pestañas abiertas.
 - Diálogo de cierre: el foco empieza en Cancel; el botón destructivo es "Close and delete text".
 - Anuncios: "Statement 2 of 3, lines 2–3", "3 statements", "Choose a connection first.", "Nothing to run.", "No query is open.". El resaltado de Mod+Enter (contorno de acento además del fondo) desaparece con la siguiente edición o movimiento del cursor. Un fallo al guardar muestra un aviso (`ErrorPanel`) y se anuncia de forma enérgica.
-- Mod+Shift+Enter ejecuta todo; ejecutar solo la selección llega con H1.6 o después.
+- Mod+Shift+Enter ejecuta todo; ejecutar solo la selección llega más adelante.
+
+### Ejecución (H1.6)
+
+- Mod+Enter ejecuta la sentencia actual y Mod+Shift+Enter todas, en orden, parando en el primer error. Antes de empezar, si hay sentencias peligrosas (`UPDATE`/`DELETE` sin `WHERE`; `DROP`/`TRUNCATE` en producción), un solo diálogo las lista con la conexión y PRODUCTION; el foco empieza en Cancel y el botón destructivo es explícito ("Run anyway").
+- Barra de estado: "Running… 00:03" con el botón Cancel mientras se ejecuta; al acabar, filas y tiempo ("120 rows · 15 ms" o "3 rows affected · 4 ms"). Cancelar: Esc en el editor o en los resultados, y Mod+. en cualquier sitio. Una cancelación muestra "Query cancelled", no un error.
+- El inicio y el fin se anuncian de forma educada ("Running statement 2 of 5", "Done: 120 rows in 15 ms"); los errores, de forma enérgica. Nunca se mueve el foco.
+- La región de resultados tiene las pestañas Results y Messages. Results muestra hasta H1.7 un resumen (filas, tiempo y nombres de columna). Messages lista el resultado de cada sentencia, las notices y los errores (con icono y texto del tipo, y "Technical details" desplegable y copiable). Con un error se pasa a Messages sin mover el foco.
+- Si el error trae `position`, se subraya en el editor (subrayado ondulado más un marcador en el número de línea, no solo color) y se anuncia "Error at line 3, column 5".
 
 ## 4. Atajos de teclado
 

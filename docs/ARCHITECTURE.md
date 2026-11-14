@@ -365,6 +365,41 @@ Q_DECLARE_METATYPE(std::vector<quarry::SchemaNode>)
 9. Al cerrar la pestaña, se destruye el stream y después la sesión (`QThread::quit()` + `wait()` con timeout; si se pasa, `requestCancel()`).
 10. La sentencia, la duración y el resultado (éxito o error) se guardan en el historial (`quarry.db`, Hito de historial).
 
+### 6.1 Contrato de ejecución (H1.6)
+
+Decisiones del 2026-11-14:
+- **`SqlSafety` usa un lexer genérico de `core`**, no un tokenizador del dialecto: `ISqlDialect` no tiene `tokenize()` y añadirlo rompería la ABI de los plugins. El lexer reconoce comentarios (`--`, `/* */` anidados), cadenas `'…'` (con `''`), identificadores `"…"`, `` `…` `` y `[…]`, y `$tag$…$tag$`. Basta para SQLite, PostgreSQL y MySQL. `shortcut:` un dialecto con otra sintaxis de comentarios o cadenas puede dar falsos positivos o negativos; si llega uno, añadir un `tokenize()` opcional al dialecto.
+- **Ejecutar todo** (Mod+Shift+Enter) ejecuta las sentencias en orden y **se para en el primer error**. Mensajes muestra el resultado de cada una ("Statement 2 of 5: 3 rows affected") y el error, subrayado en el editor.
+- **Confirmación única:** antes de ejecutar nada, `SqlSafety` revisa todas las sentencias del plan. Si alguna es peligrosa, un solo diálogo las lista todas, con la conexión y su marca PRODUCTION. Confirmar ejecuta el plan completo; Esc lo cancela antes de empezar.
+- **Resultados sin grid:** hasta H1.7, la pestaña Results muestra un resumen ("120 rows · 15 ms") y los nombres de las columnas. Se sigue leyendo el primer lote de 500 filas para probar el streaming y la cancelación.
+
+```cpp
+// src/core/include/quarry/sql_safety.h
+namespace quarry {
+enum class SqlRisk {
+    None,
+    UpdateWithoutWhere,   // en cualquier conexión
+    DeleteWithoutWhere,   // en cualquier conexión
+    Drop,                 // solo si production
+    Truncate,             // solo si production
+};
+
+class SqlSafety {
+public:
+    // Una sentencia tal como la da splitStatements(). Solo cuenta el comando principal: tras un
+    // WITH (CTE) se salta hasta el comando; DELETE/UPDATE necesitan un WHERE a profundidad de
+    // paréntesis 0 detrás del comando (un WHERE dentro de un CTE o una subconsulta no vale).
+    // Lo que va en comentarios, cadenas e identificadores entrecomillados se ignora.
+    // DROP/TRUNCATE cuentan solo como comando principal (no `ALTER TABLE … DROP COLUMN`).
+    static SqlRisk check(QStringView statement, bool production);
+};
+}
+```
+
+- `QueryController` (app) tiene una `Session` por pestaña del editor, aparte de la sesión de metadatos del árbol. Se crea en la primera ejecución (con la contraseña del llavero o la recordada en esta ejecución de la app, como el árbol) y se cierra al cerrar la pestaña, al cambiar su conexión o al borrar la conexión.
+- Se engancha a `EditorTabsModel::runRequested(plan)`: aplica `SqlSafety` al plan, ejecuta cada rango con `Session::execute` (un `fetchSize` de 500, sin `fetchMore` hasta H1.7) y pasa al siguiente con `finished`. `failed` para el plan; `cancelled` también, y muestra "Query cancelled" sin tratarlo como error.
+- Un plan nuevo en la misma pestaña mientras otro se ejecuta cancela el anterior (es lo que ya hace `Session::execute`). Cada pestaña ejecuta lo suyo a la vez que las demás.
+
 ## 7. Gestión de errores
 
 - Los providers traducen los errores del driver a `Error`: `kind` según SQLSTATE o código nativo; `message` en lenguaje claro y traducible; `detail` con el texto literal del driver; `position` si el driver la da (PostgreSQL la da).

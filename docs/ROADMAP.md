@@ -8,7 +8,7 @@ Estados: `pendiente` · `en curso` · `hecho` · `bloqueado`
 |---|---|---|
 | F0 | Entorno de desarrollo (Windows verificado) | hecho |
 | H0 | Esqueleto + CI en los tres sistemas | hecho (2026-11-12) |
-| H1 | Versión mínima (subhitos 1.1–1.8) | en curso (1.1–1.5 hechos) |
+| H1 | Versión mínima (subhitos 1.1–1.8) | en curso (1.1–1.5 hechos, 1.6 en curso) |
 | H2 | Edición de datos | pendiente |
 | H3 | Autocompletado | pendiente |
 | H4 | Historial y consultas guardadas | pendiente |
@@ -127,6 +127,7 @@ Criterios:
 - Barra de estado: `Running… 00:03`, botón Cancel (Esc / Ctrl/Cmd+.), filas y tiempo al acabar.
 - Panel de mensajes: errores con `position` subrayada en el editor, notices y filas afectadas.
 - `SqlSafety`: confirmación para `UPDATE`/`DELETE` sin `WHERE`, y para `DROP`/`TRUNCATE` en conexiones de producción.
+- Decisiones (2026-11-14, ARCHITECTURE §6.1): lexer genérico en `core` para `SqlSafety`; ejecutar todo se para en el primer error; un solo diálogo de confirmación para todo el plan; Results muestra un resumen hasta que llegue el grid (H1.7).
 
 Criterios:
 - [ ] La UI responde durante la consulta: se puede cambiar de pestaña, desplegar el árbol y cancelar.
