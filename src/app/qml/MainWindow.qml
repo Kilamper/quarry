@@ -12,7 +12,7 @@ Item {
 
     // Regions in F6 order. Hidden ones are skipped.
     readonly property list<Item> regions: [sidebarRegion, editorRegion, resultsRegion, statusRegion]
-    readonly property list<Command> ownCommands: [cmdPalette, cmdSettings, cmdNewConnection, cmdOpenSqlite, cmdEditConnection, cmdDuplicateConnection, cmdDeleteConnection, cmdDisconnect, cmdSidebar, cmdResults, cmdResetLayout, cmdZoomIn, cmdZoomOut, cmdZoomReset, cmdFocusSidebar, cmdFocusEditor, cmdFocusResults, cmdNextRegion, cmdPreviousRegion, cmdNewTab, cmdCloseTab, cmdNextTab, cmdPreviousTab, cmdRunStatement, cmdRunAll]
+    readonly property list<Command> ownCommands: [cmdPalette, cmdSettings, cmdNewConnection, cmdOpenSqlite, cmdEditConnection, cmdDuplicateConnection, cmdDeleteConnection, cmdDisconnect, cmdSidebar, cmdResults, cmdResetLayout, cmdZoomIn, cmdZoomOut, cmdZoomReset, cmdFocusSidebar, cmdFocusEditor, cmdFocusResults, cmdNextRegion, cmdPreviousRegion, cmdNewTab, cmdCloseTab, cmdNextTab, cmdPreviousTab, cmdRunStatement, cmdRunAll, cmdCancelQuery]
     // Overlays are created on first use (and preloaded when idle) to keep them off the startup
     // path; each is null until then.
     readonly property Item overlayItem: T.Overlay.overlay
@@ -21,11 +21,16 @@ Item {
     readonly property var connectionDialog: connectionLoader.item
     readonly property var deleteDialog: deleteLoader.item
     readonly property var closeTabDialog: closeTabLoader.item
+    readonly property var confirmRunDialog: confirmRunLoader.item
+    readonly property var queryPasswordDialog: queryPasswordLoader.item
     readonly property var filePicker: pickerLoader.item
     readonly property alias connections: connectionsCtl
     readonly property alias sidebar: sidebar
     readonly property alias editorTabs: tabsModel
     readonly property alias editorArea: editorArea
+    readonly property alias queries: queryCtl
+    readonly property alias resultsPanel: resultsPanel
+    readonly property alias statusItem: statusItem
     readonly property var appMenu: menuLoader.item
     // Where the connections live; empty = the application's own. Tests use a temporary one.
     property string databasePath: ""
@@ -63,6 +68,16 @@ Item {
     }
 
     // ---- editor tabs -------------------------------------------------------------------------
+
+    function confirmRun(request) {
+        confirmRunLoader.active = true;
+        confirmRunLoader.item.openFor(request);
+    }
+
+    function askQueryPassword(id, name, retry) {
+        queryPasswordLoader.active = true;
+        queryPasswordLoader.item.openFor(id, name, retry);
+    }
 
     function openQuery() {
         // The connection of the current tree node, else the one of the current tab (the model).
@@ -110,14 +125,23 @@ Item {
             editorArea.announce(qsTr("%1, tab %2 of %3").arg(tabsModel.titleOf(tabsModel.currentIndex)).arg(tabsModel.currentIndex + 1).arg(tabsModel.count));
     }
 
-    // Marks and announces what would run; H1.6 executes the same ranges (tabsModel.runRequested).
+    // Marks what runs and runs it: QueryController hooks tabsModel.runRequested, which `run`
+    // emits, and announces the start. Only a plan that cannot run is said here.
     function runQuery(all) {
         const editor = editorArea.currentEditor;
         const plan = tabsModel.run(tabsModel.currentIndex, all, editor ? editor.edit.cursorPosition : 0);
-        editorArea.announce(plan.message);
-        if (editor)
+        if (!plan.ok)
+            editorArea.announce(plan.message);
+        else if (editor)
             editor.mark(plan.ranges);
         return plan;
+    }
+
+    // Esc in the editor or the results region cancels a running query; otherwise it is left alone.
+    function cancelOnEscape(event) {
+        event.accepted = queryCtl.current.running;
+        if (event.accepted)
+            queryCtl.cancelCurrent();
     }
 
     function regionOf(item) {
@@ -205,6 +229,18 @@ Item {
     }
 
     // ---- connections -------------------------------------------------------------------------
+
+    // Before the ConnectionController: the sessions' code lives in its plugins, and children are
+    // destroyed in creation order.
+    QueryController {
+        id: queryCtl
+
+        tabs: tabsModel
+
+        onAnnouncement: (text, assertive) => editorArea.announce(text, assertive)
+        onConfirmationRequested: request => shell.confirmRun(request)
+        onPasswordRequested: (id, name, retry) => shell.askQueryPassword(id, name, retry)
+    }
 
     ConnectionController {
         id: connectionsCtl
@@ -516,6 +552,17 @@ Item {
         onTriggered: shell.runQuery(true)
     }
 
+    Command {
+        id: cmdCancelQuery
+
+        commandId: "query.cancel"
+        category: qsTr("Editor")
+        title: qsTr("Cancel query")
+        shortcut: "Ctrl+."
+        enabled: queryCtl.current.running
+        onTriggered: queryCtl.cancelCurrent()
+    }
+
     Instantiator {
         model: CommandRegistry.commands
 
@@ -649,12 +696,14 @@ Item {
                     defaultFocus: editorArea.defaultFocus
                     T.SplitView.fillHeight: true
                     T.SplitView.minimumHeight: Theme.controlHeight * 4
+                    Keys.onEscapePressed: event => shell.cancelOnEscape(event)
 
                     EditorArea {
                         id: editorArea
 
                         anchors.fill: parent
                         tabs: tabsModel
+                        queries: queryCtl
                         connections: connectionsCtl
                         newShortcut: cmdNewTab.shortcutText
                         onNewRequested: CommandRegistry.trigger(cmdNewTab.commandId)
@@ -667,47 +716,17 @@ Item {
 
                     regionName: qsTr("Results panel")
                     color: Theme.bgCanvas
-                    defaultFocus: resultsTabs.currentItem
+                    defaultFocus: resultsPanel.tabBar.currentItem
                     visible: shell.resultsVisible
+                    Keys.onEscapePressed: event => shell.cancelOnEscape(event)
                     T.SplitView.preferredHeight: Number(LayoutStore.value("resultsHeight", shell.defaultResultsHeight))
                     T.SplitView.minimumHeight: Theme.controlHeight * 4
 
-                    ColumnLayout {
+                    ResultsPanel {
+                        id: resultsPanel
+
                         anchors.fill: parent
-                        spacing: 0
-
-                        QTabBar {
-                            id: resultsTabs
-
-                            Layout.fillWidth: true
-                            accessibleName: qsTr("Results panel tabs")
-
-                            QTabButton {
-                                text: qsTr("Results")
-                            }
-
-                            QTabButton {
-                                text: qsTr("Messages")
-                            }
-                        }
-
-                        StackLayout {
-                            Layout.fillWidth: true
-                            Layout.fillHeight: true
-                            currentIndex: resultsTabs.currentIndex
-
-                            EmptyState {
-                                iconGlyph: Icons.table
-                                title: qsTr("No results yet")
-                                message: qsTr("Run a query to see results here.")
-                            }
-
-                            EmptyState {
-                                iconGlyph: Icons.info
-                                title: qsTr("No messages")
-                                message: qsTr("Errors, notices and affected row counts appear here.")
-                            }
-                        }
+                        queries: queryCtl
                     }
                 }
             }
@@ -716,8 +735,10 @@ Item {
         Region {
             id: statusRegion
 
+            readonly property bool queryShown: queryCtl.current.state !== "idle"
+
             Layout.fillWidth: true
-            implicitHeight: Math.max(Theme.controlHeight, statusText.implicitHeight + Theme.spacing * 2)
+            implicitHeight: statusColumn.implicitHeight + 1
             regionName: qsTr("Status bar")
             defaultFocus: statusItem
 
@@ -727,66 +748,112 @@ Item {
                 color: Theme.borderDefault
             }
 
-            // Focusable so keyboard and screen-reader users can read the status; later milestones
-            // add the running query, row count and so on beside it.
-            Item {
-                id: statusItem
+            ColumnLayout {
+                id: statusColumn
 
                 anchors.fill: parent
-                activeFocusOnTab: true
+                anchors.topMargin: 1
+                spacing: 0
 
-                Accessible.role: Accessible.StaticText
-                Accessible.name: statusText.text + (sidebar.hasCurrent ? ". " + shell.selectedSummary : "") + (shell.cursorSummary !== "" ? ". " + shell.cursorSummary : "")
-                Accessible.focusable: true
-
+                // The last or running query of the current tab. Its own row, so "Running… 00:03" and
+                // Cancel never squeeze the connection and cursor texts (200% zoom).
                 RowLayout {
-                    anchors.fill: parent
-                    anchors.leftMargin: Theme.spacing * 2
-                    anchors.rightMargin: Theme.spacing * 2
+                    id: queryRow
+
+                    Layout.fillWidth: true
+                    Layout.leftMargin: Theme.spacing * 2
+                    Layout.rightMargin: Theme.spacing * 2
+                    visible: statusRegion.queryShown
                     spacing: Theme.spacing
 
                     Icon {
-                        text: sidebar.currentConnected ? Icons.plug : Icons.unplug
-                        color: Theme.fgMuted
+                        text: queryCtl.current.state === "running" ? Icons.loaderCircle : queryCtl.current.state === "done" ? Icons.circleCheck : queryCtl.current.state === "failed" ? Icons.circleAlert : Icons.info
+                        color: queryCtl.current.state === "failed" ? Theme.danger : Theme.fgMuted
                     }
 
                     Text {
-                        id: statusText
+                        id: queryText
 
                         Layout.fillWidth: true
-                        text: sidebar.currentConnected ? qsTr("Connected") : qsTr("Not connected")
+                        text: queryCtl.current.statusText
                         font.pointSize: Theme.fontSize
                         color: Theme.fgDefault
                         wrapMode: Text.WordWrap
                     }
 
-                    // The connection of the selected node.
-                    Text {
-                        visible: sidebar.hasCurrent
-                        text: qsTr("Selected: %1").arg(sidebar.currentName)
-                        font.pointSize: Theme.fontSize
-                        color: Theme.fgMuted
-                    }
+                    QButton {
+                        id: cancelQueryButton
 
-                    ProductionBadge {
-                        visible: sidebar.hasCurrent && sidebar.currentProduction
-                    }
-
-                    // The cursor of the current editor.
-                    Text {
-                        // Never cut: the other status items give way first.
-                        Layout.minimumWidth: implicitWidth
-                        Layout.preferredWidth: implicitWidth
-                        visible: shell.cursorSummary !== ""
-                        text: shell.cursorSummary
-                        font.pointSize: Theme.fontSize
-                        color: Theme.fgDefault
+                        visible: queryCtl.current.running
+                        text: qsTr("Cancel")
+                        iconGlyph: Icons.square
+                        Accessible.name: qsTr("Cancel query")
+                        Accessible.description: cmdCancelQuery.shortcutText
+                        onClicked: CommandRegistry.trigger(cmdCancelQuery.commandId)
                     }
                 }
 
-                FocusRing {
-                    shown: statusItem.activeFocus
-                    inset: true
+                // Focusable so keyboard and screen-reader users can read the status.
+                Item {
+                    id: statusItem
+
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: Math.max(Theme.controlHeight, statusText.implicitHeight + Theme.spacing * 2)
+                    activeFocusOnTab: true
+
+                    Accessible.role: Accessible.StaticText
+                    Accessible.name: (statusRegion.queryShown ? queryCtl.current.statusText + ". " : "") + statusText.text + (sidebar.hasCurrent ? ". " + shell.selectedSummary : "") + (shell.cursorSummary !== "" ? ". " + shell.cursorSummary : "")
+                    Accessible.focusable: true
+
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.leftMargin: Theme.spacing * 2
+                        anchors.rightMargin: Theme.spacing * 2
+                        spacing: Theme.spacing
+
+                        Icon {
+                            text: sidebar.currentConnected ? Icons.plug : Icons.unplug
+                            color: Theme.fgMuted
+                        }
+
+                        Text {
+                            id: statusText
+
+                            Layout.fillWidth: true
+                            text: sidebar.currentConnected ? qsTr("Connected") : qsTr("Not connected")
+                            font.pointSize: Theme.fontSize
+                            color: Theme.fgDefault
+                            wrapMode: Text.WordWrap
+                        }
+
+                        // The connection of the selected node.
+                        Text {
+                            visible: sidebar.hasCurrent
+                            text: qsTr("Selected: %1").arg(sidebar.currentName)
+                            font.pointSize: Theme.fontSize
+                            color: Theme.fgMuted
+                        }
+
+                        ProductionBadge {
+                            visible: sidebar.hasCurrent && sidebar.currentProduction
+                        }
+
+                        // The cursor of the current editor.
+                        Text {
+                            // Never cut: the other status items give way first.
+                            Layout.minimumWidth: implicitWidth
+                            Layout.preferredWidth: implicitWidth
+                            visible: shell.cursorSummary !== ""
+                            text: shell.cursorSummary
+                            font.pointSize: Theme.fontSize
+                            color: Theme.fgDefault
+                        }
+                    }
+
+                    FocusRing {
+                        shown: statusItem.activeFocus
+                        inset: true
+                    }
                 }
             }
         }
@@ -832,6 +899,27 @@ Item {
         active: false
         sourceComponent: CloseTabDialog {
             onCloseConfirmed: tabId => shell.closeQueryNow(tabId)
+        }
+    }
+
+    Loader {
+        id: confirmRunLoader
+
+        active: false
+        sourceComponent: ConfirmRunDialog {
+            onConfirmed: tabId => queryCtl.confirm(tabId)
+            onDeclined: tabId => queryCtl.decline(tabId)
+        }
+    }
+
+    // The password of an "Ask every time" connection, asked on the first run of a tab.
+    Loader {
+        id: queryPasswordLoader
+
+        active: false
+        sourceComponent: PasswordDialog {
+            onSubmitted: (id, password) => queryCtl.providePassword(id, password)
+            onDismissed: id => queryCtl.cancelPassword(id)
         }
     }
 

@@ -82,10 +82,10 @@ Orden de tabulación: sigue el orden visual (de izquierda a derecha y de arriba 
 ### Ejecución (H1.6)
 
 - Mod+Enter ejecuta la sentencia actual y Mod+Shift+Enter todas, en orden, parando en el primer error. Antes de empezar, si hay sentencias peligrosas (`UPDATE`/`DELETE` sin `WHERE`; `DROP`/`TRUNCATE` en producción), un solo diálogo las lista con la conexión y PRODUCTION; el foco empieza en Cancel y el botón destructivo es explícito ("Run anyway").
-- Barra de estado: "Running… 00:03" con el botón Cancel mientras se ejecuta; al acabar, filas y tiempo ("120 rows · 15 ms" o "3 rows affected · 4 ms"). Cancelar: Esc en el editor o en los resultados, y Mod+. en cualquier sitio. Una cancelación muestra "Query cancelled", no un error.
-- El inicio y el fin se anuncian de forma educada ("Running statement 2 of 5", "Done: 120 rows in 15 ms"); los errores, de forma enérgica. Nunca se mueve el foco.
+- Barra de estado: "Running… 00:03" con el botón Cancel mientras se ejecuta, en una fila propia encima de "Connected / Selected / Ln" (en una sola fila no cabía al 200 %); al acabar, filas y tiempo ("120 rows · 15 ms" o "3 rows affected · 4 ms"; "500+ rows" si quedan filas por traer, con el tiempo total del plan). Cancelar: Esc en el editor o en los resultados, y Mod+. en cualquier sitio. Una cancelación muestra "Query cancelled", no un error.
+- El inicio y el fin se anuncian de forma educada ("Running statement 2 of 5", "Done: 120 rows in 15 ms"); los errores, de forma enérgica. Nunca se mueve el foco. Si la pestaña no es la actual, el anuncio lleva su título delante ("Query 2: Query cancelled"). Rechazar la confirmación anuncia "Cancelled. Nothing was run."
 - La región de resultados tiene las pestañas Results y Messages. Results muestra hasta H1.7 un resumen (filas, tiempo y nombres de columna). Messages lista el resultado de cada sentencia, las notices y los errores (con icono y texto del tipo, y "Technical details" desplegable y copiable). Con un error se pasa a Messages sin mover el foco.
-- Si el error trae `position`, se subraya en el editor (subrayado ondulado más un marcador en el número de línea, no solo color) y se anuncia "Error at line 3, column 5".
+- Si el error trae `position`, se subraya en el editor (línea continua de 2 px bajo el identificador o número que empieza en esa posición, mínimo un carácter, más un icono de alerta en el margen de números; no solo color). Solo se marca si el texto de la pestaña no ha cambiado desde que se ejecutó y se anuncia "Error at line 3, column 5".
 
 ## 4. Atajos de teclado
 

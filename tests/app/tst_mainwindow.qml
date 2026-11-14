@@ -416,8 +416,9 @@ TestCase {
         for (const c of CommandRegistry.commands.slice()) {
             // Connection commands that act on the selected connection are disabled here: the
             // palette lists them but must not run them (tst_connections.qml covers them enabled).
+            // query.cancel is only enabled while a query runs (tst_query.qml).
             if (!c.enabled) {
-                verify(c.commandId.startsWith("connection."), c.commandId + " is disabled");
+                verify(c.commandId.startsWith("connection.") || c.commandId === "query.cancel", c.commandId + " is disabled");
                 continue;
             }
             // The platform file dialog cannot be dismissed reliably offscreen: only check that
@@ -668,6 +669,40 @@ TestCase {
         shell.connections.remove(first);
         tryCompare(shell.connections.model, "count", 1);
         shell.connections.remove(prod);
+        tryCompare(shell.connections.model, "count", 0);
+    }
+
+    // The 200% check with the status bar in its running state: "Running… 00:01" and Cancel get a
+    // row of their own, so neither they nor the other status texts are cut.
+    function test_layoutSurvives200PercentZoomWhileAQueryRuns() {
+        const id = expandSampleTree();
+        keyClick(Qt.Key_T, Qt.ControlModifier);
+        tryVerify(() => shell.editorArea.currentEditor !== null && shell.editorArea.currentEditor.visible);
+        shell.editorArea.currentEditor.edit.text = "WITH RECURSIVE c(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM c WHERE x < 100000000000) SELECT count(*) FROM c";
+        keyClick(Qt.Key_Return, Qt.ControlModifier);
+        tryCompare(shell.queries.current, "running", true);
+
+        Theme.zoom = 2.0;
+        tryVerify(() => shell.queries.current.elapsedText !== "00:00", 5000); // a second of running
+        wait(150); // one layout pass
+        const cancel = walker.findAll(shell.regions[3], i => i.visible && i.Accessible.name === "Cancel query")[0];
+        verify(cancel !== undefined, "Cancel is in the status bar");
+        const zoomed = textProblems(shell);
+        verify(zoomed.count >= 10);
+        compare(zoomed.problems, []);
+        verify(walker.findAll(shell.regions[3], i => i.visible && i.text !== undefined && String(i.text).startsWith("Running… 00:")).length >= 1);
+        // The status bar fits in the window, button included.
+        const p = cancel.mapToItem(null, 0, 0);
+        verify(p.x + cancel.width <= testCase.width + 1, "Cancel leaves the window");
+        for (const r of shell.regions) {
+            const q = r.mapToItem(null, 0, 0);
+            verify(q.y + r.height <= testCase.height + 1, r.regionName + " leaves the window");
+        }
+
+        keyClick(Qt.Key_Period, Qt.ControlModifier);
+        tryCompare(shell.queries.current, "state", "cancelled", 20000);
+        shell.editorTabs.closeTab(0);
+        shell.connections.remove(id);
         tryCompare(shell.connections.model, "count", 0);
     }
 }

@@ -399,6 +399,9 @@ public:
 - `QueryController` (app) tiene una `Session` por pestaña del editor, aparte de la sesión de metadatos del árbol. Se crea en la primera ejecución (con la contraseña del llavero o la recordada en esta ejecución de la app, como el árbol) y se cierra al cerrar la pestaña, al cambiar su conexión o al borrar la conexión.
 - Se engancha a `EditorTabsModel::runRequested(plan)`: aplica `SqlSafety` al plan, ejecuta cada rango con `Session::execute` (un `fetchSize` de 500, sin `fetchMore` hasta H1.7) y pasa al siguiente con `finished`. `failed` para el plan; `cancelled` también, y muestra "Query cancelled" sin tratarlo como error.
 - Un plan nuevo en la misma pestaña mientras otro se ejecuta cancela el anterior (es lo que ya hace `Session::execute`). Cada pestaña ejecuta lo suyo a la vez que las demás.
+- Implementación (H1.6): lo que ve la UI vive en un `QueryState` por pestaña (estado, resumen, `QueryMessagesModel`, error a subrayar), y `QueryController.current` es el de la pestaña actual. Para saber de quién es cada señal final, la pestaña guarda una entrada por `execute()` enviado con el id de su plan; las de un plan reemplazado se descartan, así el `cancelled` del plan viejo no para el nuevo. Si una sentencia acaba antes de que llegue la cancelación, el plan termina igual como "Query cancelled".
+- La contraseña se comparte con `ConnectionController` (`readPassword` → `passwordAvailable`/`passwordUnavailable`, `sessionPassword`, `rememberPassword`, `forgetPassword`, que solo borra la recordada en memoria, nunca la del llavero). Un `open()` que falla cierra la sesión; si es de autenticación, se olvida la contraseña recordada para que la siguiente ejecución la pida.
+- `QueryController` se declara antes que `ConnectionController` en `MainWindow.qml`: los hijos se destruyen en orden de creación y las sesiones deben morir antes de descargar los plugins.
 
 ## 7. Gestión de errores
 

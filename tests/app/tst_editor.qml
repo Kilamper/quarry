@@ -10,6 +10,8 @@ TestCase {
 
     property var shell: null
     property int fileCounter: 0
+    // What QueryController sent to the screen reader.
+    property var said: []
 
     name: "Editor"
     when: windowShown
@@ -25,6 +27,14 @@ TestCase {
         id: spyComp
 
         SignalSpy {}
+    }
+
+    Connections {
+        target: testCase.shell ? testCase.shell.queries : null
+
+        function onAnnouncement(text) {
+            testCase.said.push(text);
+        }
     }
 
     // ---- helpers -----------------------------------------------------------------------------
@@ -281,24 +291,30 @@ TestCase {
         shell.focusRegion(1);
         verify(editor().edit.activeFocus);
 
-        // The cursor is at the end: statement 3 of 3. Up moves into the second statement.
+        // The cursor is at the end: statement 3 of 3. Up moves into the second statement. From
+        // H1.6 on the commands run the statements (QueryController) and announce the start.
+        said.length = 0;
         keyClick(Qt.Key_Return, Qt.ControlModifier);
-        compare(area().lastAnnouncement, "Statement 3 of 3, line 4");
+        tryVerify(() => said.includes("Running statement 3 of 3"));
+        tryCompare(shell.queries.current, "state", "done");
         keyClick(Qt.Key_Up);
         keyClick(Qt.Key_Up);
         keyClick(Qt.Key_Return, Qt.ControlModifier);
-        compare(area().lastAnnouncement, "Statement 2 of 3, lines 2–3");
+        tryVerify(() => said.includes("Running statement 2 of 3"));
         compare(editor().marked.length, 1);
         compare(editor().marked[0].startLine, 2);
         compare(editor().marked[0].endLine, 3);
+        tryCompare(shell.queries.current, "state", "failed"); // there is no table t
         keyClick(Qt.Key_Return, Qt.ControlModifier | Qt.ShiftModifier);
-        compare(area().lastAnnouncement, "3 statements");
+        tryVerify(() => said.includes("Running statement 1 of 3"));
         compare(editor().marked.length, 3);
+        tryCompare(shell.queries.current, "state", "failed"); // all stops at the statement 2 error
         keyClick(Qt.Key_Left); // moving the cursor drops the mark
         compare(editor().marked.length, 0);
         // The keypad's Enter does the same.
+        said.length = 0;
         keyClick(Qt.Key_Enter, Qt.ControlModifier);
-        verify(area().lastAnnouncement.startsWith("Statement "), area().lastAnnouncement);
+        tryVerify(() => said.some(t => t.startsWith("Running statement ")), 5000, said.join("|"));
 
         // Two tabs, Ctrl+Tab and Ctrl+Shift+Tab between them (the focus follows the tab).
         keyClick(Qt.Key_T, Qt.ControlModifier);
@@ -648,10 +664,10 @@ TestCase {
         compare(area().lastAnnouncement, "Elige primero una conexión.");
         const id = addSqlite(newFile());
         tabs().setConnection(0, id);
+        said.length = 0;
         keyClick(Qt.Key_Return, Qt.ControlModifier);
-        compare(area().lastAnnouncement, "Sentencia 1 de 1, línea 1");
-        keyClick(Qt.Key_Return, Qt.ControlModifier | Qt.ShiftModifier);
-        compare(area().lastAnnouncement, "1 sentencia");
+        tryVerify(() => said.includes("Ejecutando la sentencia 1 de 1"), 5000, said.join("|"));
+        tryVerify(() => said.some(t => t.startsWith("Hecho: 1 fila en ")), 5000, said.join("|"));
         const close = find(area().tabBar.itemAt(0), i => i.accessibleName !== undefined && i.accessibleName.startsWith("Cerrar"));
         compare(close.accessibleName, "Cerrar Consulta 1");
         keyClick(Qt.Key_W, Qt.ControlModifier);

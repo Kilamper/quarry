@@ -20,6 +20,8 @@ FocusScope {
     property string connectionName: ""
     property bool production: false
     property string placeholder: ""
+    // What the last run of this tab says (QueryState): its error is underlined below.
+    property var queryState: null
     // Ranges marked by a run command: [{startLine, endLine}, ...] (1-based lines).
     property var marked: []
 
@@ -38,6 +40,8 @@ FocusScope {
     readonly property int firstVisibleLine: Math.max(0, Math.floor((scroller.contentY - textEdit.topPadding) / lineHeight))
     readonly property int lastVisibleLine: Math.min(textEdit.lineCount - 1, Math.ceil((scroller.contentY + scroller.height - textEdit.topPadding) / lineHeight))
     property bool restoring: true
+    readonly property int errorOffset: queryState ? queryState.errorOffset : -1
+    readonly property int errorLine: queryState ? queryState.errorLine : 0
 
     function updateStatement() {
         statement = tabs.statementAt(row, textEdit.cursorPosition);
@@ -113,7 +117,8 @@ FocusScope {
 
         readonly property real digitWidth: metrics.advanceWidth("0")
 
-        width: Math.max(3, String(textEdit.lineCount).length) * digitWidth + Theme.spacing * 4
+        // Room for the error marker beside the numbers.
+        width: Math.max(3, String(textEdit.lineCount).length) * digitWidth + Theme.spacing * 4 + marker.implicitWidth
         height: parent.height
         clip: true
 
@@ -127,6 +132,18 @@ FocusScope {
             width: 1
             height: parent.height
             color: Theme.borderDefault
+        }
+
+        // The line of the run error: an icon, not only a color (the line is also announced).
+        Icon {
+            id: marker
+
+            x: Theme.spacing / 2
+            y: textEdit.topPadding + (root.errorLine - 1) * root.lineHeight - scroller.contentY + (root.lineHeight - height) / 2
+            opacity: root.errorOffset >= 0 && root.errorLine > 0 ? 1 : 0
+            text: Icons.circleAlert
+            color: Theme.danger
+            objectName: "errorMarker"
         }
 
         Repeater {
@@ -226,6 +243,8 @@ FocusScope {
                     return;
                 if (root.marked.length > 0)
                     root.marked = [];
+                if (root.queryState)
+                    root.queryState.clearError(); // its position refers to the old text
                 root.tabs.setText(root.row, text);
             }
             onCursorPositionChanged: {
@@ -253,6 +272,20 @@ FocusScope {
                     root.movePage(event.key === Qt.Key_PageDown, shift);
                     event.accepted = true;
                 }
+            }
+
+            // The error of the last run, underlined at its token.
+            Rectangle {
+                readonly property rect start: textEdit.positionToRectangle(Math.max(0, root.errorOffset))
+                readonly property rect end: textEdit.positionToRectangle(Math.max(0, root.errorOffset) + (root.queryState?.errorLength ?? 0))
+
+                objectName: "errorUnderline"
+                visible: root.errorOffset >= 0
+                x: start.x
+                y: start.y + start.height - height
+                width: Math.max(end.x - start.x, metrics.advanceWidth("0"))
+                height: Theme.focusRingWidth
+                color: Theme.danger
             }
 
             Text {

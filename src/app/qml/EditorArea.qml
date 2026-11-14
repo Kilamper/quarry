@@ -10,6 +10,7 @@ ColumnLayout {
     id: root
 
     required property var tabs // EditorTabsModel
+    required property var queries // QueryController
     required property var connections // ConnectionController
     property string newShortcut: ""
     // The last thing sent to the screen reader (tests read it; it is not shown).
@@ -222,6 +223,7 @@ ColumnLayout {
                 id: holder
 
                 required property int index
+                required property string tabId
                 required property string title
                 required property string connectionId
                 required property string connectionName
@@ -244,6 +246,7 @@ ColumnLayout {
                     anchors.fill: parent
                     tabs: root.tabs
                     row: holder.index
+                    queryState: root.queries.stateOf(holder.tabId)
                     tabTitle: holder.title
                     connectionId: holder.connectionId
                     connectionName: holder.connectionName

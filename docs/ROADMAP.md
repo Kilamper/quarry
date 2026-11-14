@@ -8,7 +8,7 @@ Estados: `pendiente` · `en curso` · `hecho` · `bloqueado`
 |---|---|---|
 | F0 | Entorno de desarrollo (Windows verificado) | hecho |
 | H0 | Esqueleto + CI en los tres sistemas | hecho (2026-11-12) |
-| H1 | Versión mínima (subhitos 1.1–1.8) | en curso (1.1–1.5 hechos, 1.6 en curso) |
+| H1 | Versión mínima (subhitos 1.1–1.8) | en curso (1.1–1.6 hechos) |
 | H2 | Edición de datos | pendiente |
 | H3 | Autocompletado | pendiente |
 | H4 | Historial y consultas guardadas | pendiente |
@@ -123,16 +123,18 @@ Criterios:
 - Además: pestañas guardadas en `quarry.db` (migración 2) y restauradas tras el primer frame; Mod+T con la conexión del nodo del árbol; selector de conexión en la cabecera; Mod+W con confirmación si hay texto; Ctrl+Tab / Ctrl+Shift+Tab; banda de la sentencia actual y marcado de Mod+Enter / Mod+Shift+Enter con anuncio (la ejecución llega en H1.6); números de línea virtualizados (~40 items para 10 000 líneas); textos en español. Arranque: +6 ms (393 → 399 ms, mediana de 7, Release) por la DLL de KSyntaxHighlighting.
 - Limitaciones conocidas: sin sangría de varias líneas; Mod+Shift+Enter aún no ejecuta solo la selección; sin barra de desplazamiento visible; la banda de la sentencia actual puede ir hasta 250 ms por detrás de una edición; los números de línea suponen líneas de altura uniforme.
 
-### H1.6 — Ejecución asíncrona y cancelable en la UI
+### H1.6 — Ejecución asíncrona y cancelable en la UI — hecho (2026-11-14)
 - Barra de estado: `Running… 00:03`, botón Cancel (Esc / Ctrl/Cmd+.), filas y tiempo al acabar.
 - Panel de mensajes: errores con `position` subrayada en el editor, notices y filas afectadas.
 - `SqlSafety`: confirmación para `UPDATE`/`DELETE` sin `WHERE`, y para `DROP`/`TRUNCATE` en conexiones de producción.
 - Decisiones (2026-11-14, ARCHITECTURE §6.1): lexer genérico en `core` para `SqlSafety`; ejecutar todo se para en el primer error; un solo diálogo de confirmación para todo el plan; Results muestra un resumen hasta que llegue el grid (H1.7).
 
 Criterios:
-- [ ] La UI responde durante la consulta: se puede cambiar de pestaña, desplegar el árbol y cancelar.
-- [ ] El inicio y el fin de la ejecución se anuncian (`Accessible.announce`) sin robar el foco.
-- [ ] Tests de `SqlSafety`: detecta `DELETE FROM t`, `delete from t -- where`, y no da falso positivo con `DELETE … WHERE` ni con CTE + `WHERE`.
+- [x] La UI responde durante la consulta: con una CTE recursiva lenta de SQLite, `tst_query` cambia de pestaña, despliega y pliega el árbol y cancela con Mod+.; huecos del event loop (descontado el suelo en reposo de 24 ms) de 26–33 ms en Release (presupuesto 50 ms).
+- [x] El inicio y el fin de la ejecución se anuncian (`Accessible.announce`) sin robar el foco; los errores, de forma enérgica, con línea y columna. Comprobado en `tst_query` (foco intacto) y en el recorrido de accesibilidad sobre Results, Messages y el diálogo de confirmación. **Pendiente** de la pasada manual con NVDA/VoiceOver.
+- [x] Tests de `SqlSafety` (`tst_sql_safety`, ~50 casos): detecta `DELETE FROM t`, `delete from t -- where`, y no da falso positivo con `DELETE … WHERE` ni con CTE + `WHERE`. 10 000 sentencias en 6 ms (Release).
+- Además: una `Session` por pestaña, creada en la primera ejecución y cerrada con la pestaña, al cambiar de conexión o al borrarla (`tst_query_controller`, 15 casos); un plan nuevo cancela el anterior; contraseña "Ask every time" con el diálogo de contraseña, y un fallo de autenticación olvida la recordada; flujo de confirmación solo con teclado; zoom al 200 % con la consulta en marcha; textos en español. Arranque sin cambio medible (las sesiones son perezosas): A/B 759–813 → 792–820 ms con la máquina cargada, que también infla la base; repetir en una máquina tranquila.
+- Limitaciones conocidas: el plugin del provider se carga en el hilo de la UI en la primera ejecución de cada motor (como el árbol); no se guardan filas hasta H1.7; subrayado continuo, no ondulado (evita el módulo Qt Quick Shapes); "Ask every time" solo tiene test en C++; Mod+. sin probar en macOS/Linux; `EXPLAIN (ANALYZE false) …` pide confirmación (falso positivo).
 
 ### H1.7 — Grid de resultados virtualizado
 - `ResultTableModel` sobre `ResultBatch` (texto solo en `data()`), `fetchMore` de 500 filas y "Fetch all".

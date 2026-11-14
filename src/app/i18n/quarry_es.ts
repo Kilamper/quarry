@@ -63,6 +63,41 @@
     </message>
 </context>
 <context>
+    <name>ConfirmRunDialog</name>
+    <message>
+        <source>1 statement can change or destroy data on “%1”.</source>
+        <translation>1 sentencia puede cambiar o destruir datos en «%1».</translation>
+    </message>
+    <message>
+        <source>%1 statements can change or destroy data on “%2”.</source>
+        <translation>%1 sentencias pueden cambiar o destruir datos en «%2».</translation>
+    </message>
+    <message>
+        <source>This is a production connection.</source>
+        <translation>Es una conexión de producción.</translation>
+    </message>
+    <message>
+        <source>Run risky statements?</source>
+        <translation>¿Ejecutar sentencias peligrosas?</translation>
+    </message>
+    <message>
+        <source>Connection: %1</source>
+        <translation>Conexión: %1</translation>
+    </message>
+    <message>
+        <source>Statements to confirm</source>
+        <translation>Sentencias que hay que confirmar</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Cancelar</translation>
+    </message>
+    <message>
+        <source>Run anyway</source>
+        <translation>Ejecutar de todos modos</translation>
+    </message>
+</context>
+<context>
     <name>ConnectionDialog</name>
     <message>
         <source>No database engine is available.</source>
@@ -602,6 +637,10 @@
         <translation>Ejecutar todas las sentencias</translation>
     </message>
     <message>
+        <source>Cancel query</source>
+        <translation>Cancelar consulta</translation>
+    </message>
+    <message>
         <source>Toolbar</source>
         <translation>Barra de herramientas</translation>
     </message>
@@ -618,24 +657,16 @@
         <translation>Barra lateral</translation>
     </message>
     <message>
+        <source>Cancel</source>
+        <translation>Cancelar</translation>
+    </message>
+    <message>
         <source>Connected</source>
         <translation>Conectada</translation>
     </message>
     <message>
         <source>Selected: %1</source>
         <translation>Seleccionada: %1</translation>
-    </message>
-    <message>
-        <source>Connections</source>
-        <translation type="vanished">Conexiones</translation>
-    </message>
-    <message>
-        <source>No connections yet</source>
-        <translation type="vanished">Aún no hay conexiones</translation>
-    </message>
-    <message>
-        <source>Add a connection to browse its tables and run queries.</source>
-        <translation type="vanished">Añade una conexión para explorar sus tablas y ejecutar consultas.</translation>
     </message>
     <message>
         <source>Resize results panel</source>
@@ -646,52 +677,8 @@
         <translation>Editor</translation>
     </message>
     <message>
-        <source>Editor tabs</source>
-        <translation type="vanished">Pestañas del editor</translation>
-    </message>
-    <message>
-        <source>No query open</source>
-        <translation type="vanished">Ninguna consulta abierta</translation>
-    </message>
-    <message>
-        <source>Write SQL here. %1 runs the current statement.</source>
-        <translation type="vanished">Escribe SQL aquí. %1 ejecuta la sentencia actual.</translation>
-    </message>
-    <message>
-        <source>Write SQL here. Ctrl+Enter runs the current statement.</source>
-        <translation type="vanished">Escribe SQL aquí. Ctrl+Enter ejecuta la sentencia actual.</translation>
-    </message>
-    <message>
         <source>Results panel</source>
         <translation>Panel de resultados</translation>
-    </message>
-    <message>
-        <source>Results panel tabs</source>
-        <translation>Pestañas del panel de resultados</translation>
-    </message>
-    <message>
-        <source>Results</source>
-        <translation>Resultados</translation>
-    </message>
-    <message>
-        <source>Messages</source>
-        <translation>Mensajes</translation>
-    </message>
-    <message>
-        <source>No results yet</source>
-        <translation>Aún no hay resultados</translation>
-    </message>
-    <message>
-        <source>Run a query to see results here.</source>
-        <translation>Ejecuta una consulta para ver los resultados aquí.</translation>
-    </message>
-    <message>
-        <source>No messages</source>
-        <translation>Sin mensajes</translation>
-    </message>
-    <message>
-        <source>Errors, notices and affected row counts appear here.</source>
-        <translation>Aquí aparecen los errores, los avisos y el número de filas afectadas.</translation>
     </message>
     <message>
         <source>Status bar</source>
@@ -700,14 +687,6 @@
     <message>
         <source>Not connected</source>
         <translation>Sin conexión</translation>
-    </message>
-    <message>
-        <source>Connections arrive in the next milestone. Until then there is nothing to connect to.</source>
-        <translation type="vanished">Las conexiones llegarán en el próximo hito. Hasta entonces no hay nada a lo que conectarse.</translation>
-    </message>
-    <message>
-        <source>OK</source>
-        <translation type="vanished">Aceptar</translation>
     </message>
 </context>
 <context>
@@ -756,6 +735,73 @@
     <message>
         <source>Close %1</source>
         <translation>Cerrar %1</translation>
+    </message>
+</context>
+<context>
+    <name>ResultsPanel</name>
+    <message>
+        <source>Results panel tabs</source>
+        <translation>Pestañas del panel de resultados</translation>
+    </message>
+    <message>
+        <source>Results</source>
+        <translation>Resultados</translation>
+    </message>
+    <message>
+        <source>Messages</source>
+        <translation>Mensajes</translation>
+    </message>
+    <message>
+        <source>The query failed</source>
+        <translation>La consulta falló</translation>
+    </message>
+    <message>
+        <source>Query cancelled</source>
+        <translation>Consulta cancelada</translation>
+    </message>
+    <message>
+        <source>No results yet</source>
+        <translation>Aún no hay resultados</translation>
+    </message>
+    <message>
+        <source>Results appear here when the query ends.</source>
+        <translation>Los resultados aparecen aquí cuando termina la consulta.</translation>
+    </message>
+    <message>
+        <source>See the Messages tab for the details.</source>
+        <translation>Consulta la pestaña Mensajes para ver los detalles.</translation>
+    </message>
+    <message>
+        <source>Run a query to see results here.</source>
+        <translation>Ejecuta una consulta para ver los resultados aquí.</translation>
+    </message>
+    <message>
+        <source>Columns: %1</source>
+        <translation>Columnas: %1</translation>
+    </message>
+    <message>
+        <source>This statement returns no columns.</source>
+        <translation>Esta sentencia no devuelve columnas.</translation>
+    </message>
+    <message>
+        <source>More rows are available. The grid that shows them arrives in a later version.</source>
+        <translation>Hay más filas disponibles. La tabla que las muestra llega en una versión posterior.</translation>
+    </message>
+    <message>
+        <source>No messages.</source>
+        <translation>No hay mensajes.</translation>
+    </message>
+    <message>
+        <source>Errors, notices and affected row counts appear here.</source>
+        <translation>Aquí aparecen los errores, los avisos y el número de filas afectadas.</translation>
+    </message>
+    <message>
+        <source>line %1, column %2</source>
+        <translation>línea %1, columna %2</translation>
+    </message>
+    <message>
+        <source>Line %1, column %2</source>
+        <translation>Línea %1, columna %2</translation>
     </message>
 </context>
 <context>
@@ -974,6 +1020,160 @@
     <message>
         <source>%1, lines %2–%3</source>
         <translation>%1, líneas %2–%3</translation>
+    </message>
+</context>
+<context>
+    <name>quarry::ui::QueryController</name>
+    <message>
+        <source>UPDATE without WHERE</source>
+        <translation>UPDATE sin WHERE</translation>
+    </message>
+    <message>
+        <source>DELETE without WHERE</source>
+        <translation>DELETE sin WHERE</translation>
+    </message>
+    <message>
+        <source>DROP on a production connection</source>
+        <translation>DROP en una conexión de producción</translation>
+    </message>
+    <message>
+        <source>TRUNCATE on a production connection</source>
+        <translation>TRUNCATE en una conexión de producción</translation>
+    </message>
+    <message>
+        <source>Connection error</source>
+        <translation>Error de conexión</translation>
+    </message>
+    <message>
+        <source>Authentication error</source>
+        <translation>Error de autenticación</translation>
+    </message>
+    <message>
+        <source>Timeout</source>
+        <translation>Tiempo agotado</translation>
+    </message>
+    <message>
+        <source>Cancelled</source>
+        <translation>Cancelada</translation>
+    </message>
+    <message>
+        <source>Syntax error</source>
+        <translation>Error de sintaxis</translation>
+    </message>
+    <message>
+        <source>Permission denied</source>
+        <translation>Permiso denegado</translation>
+    </message>
+    <message>
+        <source>Constraint violation</source>
+        <translation>Violación de una restricción</translation>
+    </message>
+    <message>
+        <source>Not found</source>
+        <translation>No encontrado</translation>
+    </message>
+    <message>
+        <source>Not supported</source>
+        <translation>No compatible</translation>
+    </message>
+    <message>
+        <source>Database error</source>
+        <translation>Error de la base de datos</translation>
+    </message>
+    <message>
+        <source>Internal error</source>
+        <translation>Error interno</translation>
+    </message>
+    <message>
+        <source>This connection no longer exists.</source>
+        <translation>Esta conexión ya no existe.</translation>
+    </message>
+    <message>
+        <source>Statement %1 of %2, line %3</source>
+        <translation>Sentencia %1 de %2, línea %3</translation>
+    </message>
+    <message>
+        <source>Cancelled. Nothing was run.</source>
+        <translation>Cancelado. No se ejecutó nada.</translation>
+    </message>
+    <message>
+        <source>Running statement %1 of %2</source>
+        <translation>Ejecutando la sentencia %1 de %2</translation>
+    </message>
+    <message>
+        <source>Statement</source>
+        <translation>Sentencia</translation>
+    </message>
+    <message>
+        <source>Statement %1 of %2: %3</source>
+        <translation>Sentencia %1 de %2: %3</translation>
+    </message>
+    <message>
+        <source>Notice</source>
+        <translation>Aviso</translation>
+    </message>
+    <message>
+        <source>Done: %1 in %2 ms</source>
+        <translation>Hecho: %1 en %2 ms</translation>
+    </message>
+    <message>
+        <source>Done in %1 ms</source>
+        <translation>Hecho en %1 ms</translation>
+    </message>
+    <message>
+        <source>Query cancelled</source>
+        <translation>Consulta cancelada</translation>
+    </message>
+    <message>
+        <source>Error at line %1, column %2</source>
+        <translation>Error en la línea %1, columna %2</translation>
+    </message>
+    <message>
+        <source>%1: %2</source>
+        <translation>%1: %2</translation>
+    </message>
+</context>
+<context>
+    <name>quarry::ui::QueryState</name>
+    <message>
+        <source>%1+ rows</source>
+        <translation>%1+ filas</translation>
+    </message>
+    <message>
+        <source>1 row</source>
+        <translation>1 fila</translation>
+    </message>
+    <message>
+        <source>%1 rows</source>
+        <translation>%1 filas</translation>
+    </message>
+    <message>
+        <source>1 row affected</source>
+        <translation>1 fila afectada</translation>
+    </message>
+    <message>
+        <source>%1 rows affected</source>
+        <translation>%1 filas afectadas</translation>
+    </message>
+    <message>
+        <source>Done</source>
+        <translation>Hecho</translation>
+    </message>
+    <message>
+        <source>Running… %1</source>
+        <translation>Ejecutando… %1</translation>
+    </message>
+    <message>
+        <source>%1 · %2 ms</source>
+        <translation>%1 · %2 ms</translation>
+    </message>
+    <message>
+        <source>Query cancelled</source>
+        <translation>Consulta cancelada</translation>
+    </message>
+    <message>
+        <source>Query failed</source>
+        <translation>La consulta falló</translation>
     </message>
 </context>
 <context>

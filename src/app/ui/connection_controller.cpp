@@ -325,9 +325,18 @@ void ConnectionController::onStoreRemoved(const QUuid &id)
 
 void ConnectionController::onPasswordDeleted(QUuid) { }
 
+void ConnectionController::readPassword(QUuid id)
+{
+    m_externalReads.insert(id);
+    m_backend.read(id);
+}
+
 void ConnectionController::onCredentialFailed(QUuid id, const Error &error)
 {
-    if (m_tree.onPasswordFailed(id, error))
+    const bool external = m_externalReads.remove(id);
+    if (external)
+        emit passwordUnavailable(id, error);
+    if (m_tree.onPasswordFailed(id, error) || external)
         return;
     if (m_pending && m_pending->stage == Stage::WritingPassword && m_pending->profile.id == id) {
         fail(error.message, error.detail, true);
@@ -377,6 +386,8 @@ bool ConnectionController::testConnection(const QVariantMap &draft)
 void ConnectionController::onPasswordRead(QUuid id, QString password)
 {
     m_tree.onPasswordRead(id, password);
+    if (m_externalReads.remove(id))
+        emit passwordAvailable(id, password);
     if (m_testReadId.isNull() || id != m_testReadId)
         return;
     m_testReadId = QUuid();

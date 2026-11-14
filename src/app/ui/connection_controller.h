@@ -11,6 +11,7 @@
 
 #include <QHash>
 #include <QObject>
+#include <QSet>
 #include <QString>
 #include <QUrl>
 #include <QUuid>
@@ -114,6 +115,19 @@ public:
     Q_INVOKABLE void clearError();
     Q_INVOKABLE QString toLocalPath(const QUrl &url) const;
 
+    // The keychain and the per-run password memory, shared with QueryController (the tree has its
+    // own wiring). readPassword() answers with passwordAvailable() or passwordUnavailable().
+    void readPassword(QUuid id);
+    std::optional<QString> sessionPassword(QUuid id) const
+    {
+        return m_credentials.sessionPassword(id);
+    }
+    void rememberPassword(QUuid id, QString password)
+    {
+        m_credentials.rememberForSession(id, std::move(password));
+    }
+    void forgetPassword(QUuid id) { m_backend.forget(id); }
+
     // CredentialStore results; public so a test backend can deliver them.
 public slots:
     void onPasswordRead(QUuid id, QString password);
@@ -132,6 +146,8 @@ signals:
     void saveFailed(const QString &message, const QString &detail, bool keychain);
     void connectionRemoved(const QString &id);
     void connectionDuplicated(const QString &id);
+    void passwordAvailable(QUuid id, const QString &password);
+    void passwordUnavailable(QUuid id, const quarry::Error &error);
 
 private:
     enum class Kind { Save, Duplicate, Open };
@@ -175,6 +191,7 @@ private:
     bool m_storeConnected = false;
 
     std::optional<Pending> m_pending;
+    QSet<QUuid> m_externalReads; // keychain reads asked for through readPassword()
     QHash<QUuid, quarry::PasswordMode> m_removing; // deletions in flight, with the mode they had
     QStringList m_lastSecretKeys;
 
