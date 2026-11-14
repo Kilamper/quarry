@@ -63,7 +63,9 @@ Orden de tabulación: sigue el orden visual (de izquierda a derecha y de arriba 
 - Escribir letras salta al siguiente nodo visible cuyo nombre empieza por ese prefijo (se reinicia tras ~1 s sin teclear); no filtra.
 - Mientras carga, el nodo muestra un hijo "Loading…" que se anuncia; si falla, un hijo de error con "Retry" y el detalle técnico.
 - Desplegar una conexión conecta; plegarla no desconecta. "Disconnect" está en el menú contextual (Shift+F10 / tecla Menú) y en la paleta. Un nodo conectado lo indica con icono y texto, no solo con color.
-- El lector de pantalla anuncia nombre, nivel, estado plegado/desplegado y posición ("Tables, expanded, 3 of 5").
+- El lector de pantalla anuncia nombre, nivel, estado plegado/desplegado y posición ("Tables, expanded, 3 of 5"). Qt no tiene propiedades de nivel ni de posición en `Accessible`, así que van como texto en `Accessible.description` ("level 3, 1 of 2"); rol `TreeItem` y el estado expandido sí son nativos.
+- Filas sintéticas: "Loading…" (anuncio educado); error (anuncio enérgico; Enter reintenta, Espacio despliega el detalle, Mod+C lo copia); "(empty)" cuando un nodo con hijos responde sin ninguno, para que nunca se anuncie "expanded" sobre nada.
+- Los cambios al editar una conexión conectada se aplican al reconectar.
 
 ## 4. Atajos de teclado
 
@@ -91,7 +93,7 @@ Orden de tabulación: sigue el orden visual (de izquierda a derecha y de arriba 
 | Ajustes | Mod+, |
 | Aumentar / reducir / restablecer zoom | Mod+= / Mod+- / Mod+0 |
 
-Editar, duplicar y borrar conexión (`connection.edit`, `connection.duplicate`, `connection.delete`) no tienen atajo global: se usan desde la paleta, el menú contextual de la lista o la tecla Supr en la lista, y solo se activan con una conexión seleccionada.
+Editar, duplicar, desconectar y borrar conexión (`connection.edit`, `connection.duplicate`, `connection.disconnect`, `connection.delete`) no tienen atajo global: se usan desde la paleta o el menú contextual del árbol, y actúan sobre la conexión a la que pertenece el nodo actual. La tecla Supr borra solo sobre una fila de conexión. `connection.disconnect` solo se activa si esa conexión está conectada.
 
 Todos los atajos aparecen en la paleta de comandos junto a su comando; así se pueden descubrir sin documentación. Un atajo no puede ser solo una letra sin modificador fuera de los campos de texto (WCAG 2.1.4).
 

@@ -349,6 +349,7 @@ Q_DECLARE_METATYPE(std::vector<quarry::SchemaNode>)
 - Cada conexión desplegada en el árbol tiene su `Session` de metadatos, propiedad del modelo. Desplegar conecta; plegar **no** desconecta; se desconecta con el comando "Disconnect" o al cerrar la app.
 - Contraseña: `Saved` -> `CredentialStore::readPassword`; `AskEveryTime` -> diálogo que guarda la contraseña con `rememberForSession` (solo en memoria hasta cerrar la app); `None` -> sin secretos.
 - `ConnectionTester` pasa a usar `ProviderRegistry::createConnection` (mismo comportamiento y mismos mensajes).
+- `SchemaTreeModel::fetchMore` solo marca el nodo y encola la petición (cambiar el modelo dentro de `fetchMore` es ilegal cuando lo llama otra señal); la fila "Loading…" aparece en el siguiente ciclo del event loop. Las respuestas se identifican por (sesión, requestId) y las de una sesión cerrada se descartan.
 - shortcut: `ProviderRegistry::provider()` carga el plugin en el hilo de UI, no en el de sesión como dice §5; se moverá cuando haya providers con carga lenta (H1.8).
 
 ## 6. Flujo de una consulta de principio a fin

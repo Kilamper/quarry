@@ -8,7 +8,7 @@ Estados: `pendiente` · `en curso` · `hecho` · `bloqueado`
 |---|---|---|
 | F0 | Entorno de desarrollo (Windows verificado) | hecho |
 | H0 | Esqueleto + CI en los tres sistemas | hecho (2026-11-12) |
-| H1 | Versión mínima (subhitos 1.1–1.8) | en curso (1.1–1.3 hechos) |
+| H1 | Versión mínima (subhitos 1.1–1.8) | en curso (1.1–1.4 hechos) |
 | H2 | Edición de datos | pendiente |
 | H3 | Autocompletado | pendiente |
 | H4 | Historial y consultas guardadas | pendiente |
@@ -98,15 +98,18 @@ Criterios:
 - Arranque: el escaneo de providers y el hilo del store salen del camino de arranque (después del primer frame). La mediana medida fue 786 ms con la máquina cargada por otro proceso; el árbol anterior medía lo mismo con la misma carga (768 vs 770 ms). **Pendiente** repetir `--bench-startup` en una máquina tranquila (objetivo ≤ 400 ms).
 - Sin probar: la pasada manual con lectores de pantalla del diálogo de conexión; compilación local en Linux/macOS (solo CI). El área desplazable del diálogo no tiene barra de desplazamiento visible.
 
-### H1.4 — Árbol de esquemas bajo demanda
+### H1.4 — Árbol de esquemas bajo demanda · **hecho (2026-11-14)**
 - `SchemaTreeModel` (QAbstractItemModel) con `canFetchMore`/`fetchMore` por nodo y una sesión de metadatos propia.
 - Nodos: conexión → base de datos → esquema → carpetas (Tables, Views, …) → objeto → columnas/índices/FKs.
 - Teclado: flechas, ←/→ para plegar y desplegar, Enter para abrir, búsqueda escribiendo, menú contextual (Shift+F10 / tecla Menú).
 
 Criterios:
-- [ ] `QAbstractItemModelTester` sin errores.
-- [ ] Desplegar un esquema con 10 000 tablas no bloquea la UI (ningún frame > 50 ms) y muestra el indicador "Loading…" accesible.
-- [ ] El lector de pantalla anuncia el nivel, el estado plegado/desplegado y la posición ("Tables, expanded, 3 of 5").
+- [x] `QAbstractItemModelTester` (modo Fatal) sin errores en `tst_schema_tree_model`: raíces que se añaden, renombran, mueven y borran mientras cargan, y carga → error → reintento → desconexión.
+- [x] 10 000 tablas: el modelo las despliega en 50 ms (Release) con un hueco máximo del event loop de 11 ms. A través del `TreeView` real, la mediana de tres despliegues en frío es 22–25 ms (máximo 31 ms) aun con la suite en paralelo, frente a 50 ms. La fila "Loading…" se anuncia. El test usa la mediana porque Qt Quick tiene picos sueltos de 24–36 ms que dependen de la carga; trocear las inserciones no los reducía.
+- [x] Cada fila expone a la accesibilidad el rol `TreeItem`, el nombre y el estado expandido de forma nativa (comprobado con `QAccessibleInterface` en `test_accessibilityInterfaceOfTheRows`). Nivel y posición van como texto en `Accessible.description` ("level 3, 1 of 2"), porque Qt no tiene propiedades para ellos. **Pendiente** de la pasada manual con NVDA/VoiceOver.
+- Además: un solo árbol con las conexiones como raíz (color, PRODUCTION y menú se conservan); conectar al desplegar, con contraseña del llavero o pedida (`PasswordDialog`, solo en memoria); comando `connection.disconnect`; filas de error con Retry y detalle, y "(empty)"; búsqueda escribiendo; iconos por tipo de objeto; 37 textos nuevos en español.
+- Sin probar: el diálogo de contraseña de principio a fin desde QML (SQLite no tiene campo secreto; está cubierto en C++); motores con esquemas (llega con PostgreSQL en H1.8).
+- Limitaciones conocidas: Qt no da nombre accesible a los campos de contraseña (se usan una etiqueta visible y `Accessible.description`; también afecta al diálogo de conexión); el árbol no tiene barra de desplazamiento visible (Quarry.Controls aún no tiene `QScrollBar`); los cambios al editar una conexión conectada se aplican al reconectar.
 
 ### H1.5 — Editor SQL
 - Editor sobre `TextEdit` con KSyntaxHighlighting (`QQuickTextDocument`) y la definición del dialecto.
