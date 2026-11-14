@@ -507,13 +507,16 @@ class EditorTabStore : public QObject {           // tabla `editor_tabs` (migrac
 - `editor_tabs(id, connection_id REFERENCES connections(id) ON DELETE SET NULL, title, text, cursor_position, position, updated_at)`: borrar una conexión deja sus pestañas sin conexión, no las borra.
 - Las migraciones viven en un solo sitio de `core` (`AppDatabase`), compartido por `ConnectionStore` y `EditorTabStore`, y son seguras si los dos abren `quarry.db` a la vez (transacción `BEGIN IMMEDIATE`).
 - La app guarda con *debounce* (~1 s tras la última tecla) y al cerrar la pestaña o la app; el destructor del store garantiza que esas escrituras terminan.
+- En la app, `EditorTabsModel` (`src/app/ui`) guarda la lista, el texto en memoria y la lógica de sentencias: parte el texto con `splitStatements()` del dialecto 250 ms después de la última edición (la sentencia bajo el cursor usa el último corte) y `run()` siempre parte el texto actual. `run()` devuelve el plan `{ok, kind, message, tabId, connectionId, index, count, ranges[{begin, end, startLine, endLine}]}` y emite `runRequested(plan)`: es el punto de enganche de la ejecución en H1.6. Las pestañas se cargan después del primer frame; una pestaña abierta antes se conserva y las guardadas van delante. Al borrar una conexión, sus pestañas pierden la conexión también en memoria.
+- `SqlDocument` conecta un `TextEdit` con KSyntaxHighlighting. No se usan archivos `.theme`: un `SyntaxHighlighter` propio colorea cada estilo con los tokens `syn.*` de `Theme` (UX §6), así que el cambio de tema repinta en vivo y el contraste se comprueba en `tst_theme_contrast`. Definiciones: "SQL" sin conexión, "SQL (PostgreSQL)" para PostgreSQL.
+- `shortcut:` los números de línea suponen que todas las líneas tienen la misma altura; con fuentes de reserva (CJK, emoji) pueden desalinearse. Mejorarlo si se nota, leyendo la geometría de cada bloque visible.
 
 ## 12. Arranque rápido
 
 - No se carga ningún provider ni se abre ninguna conexión en el arranque. El escaneo de providers (solo metadatos) y el hilo de `ConnectionStore` arrancan en `ConnectionController::start()`, después del primer frame.
 - Los diálogos del sistema (`QtQuick.Dialogs`, para elegir el archivo SQLite) se cargan con un `Loader` por URL al usarse por primera vez, no en el arranque. Es una dependencia de despliegue: H10 debe incluir los DLL de Qt6QuickDialogs2 y su plugin QML. Las vistas QML se crean con `Loader { asynchronous: true }` salvo el esqueleto de la ventana principal.
 - QML precompilado con **qmlcachegen** (y `qmlsc` cuando esté disponible), con `qt_add_qml_module`, para evitar compilar QML en tiempo de ejecución.
-- KSyntaxHighlighting y su `Repository` (definiciones) se inicializan al abrir el primer editor, no en el arranque.
+- KSyntaxHighlighting y su `Repository` (definiciones) se inicializan al abrir el primer editor, no en el arranque. Solo se paga la carga de su DLL al iniciar el proceso (~6 ms): no se puede diferir porque la app enlaza su metaobjeto exportado. Abrir una pestaña de 10 000 líneas cuesta ~170 ms una vez, en el primer resaltado.
 - Las medidas y los presupuestos están en [PERFORMANCE.md](PERFORMANCE.md).
 
 ## 13. Riesgos técnicos identificados

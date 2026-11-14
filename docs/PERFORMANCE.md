@@ -36,7 +36,7 @@ Los runners compartidos de GitHub tienen mucho ruido, así que hay dos niveles:
 | `bench_memory` (script) | Arranca `quarry --bench-idle`, espera 3 s, lee el *private working set* / RSS (Windows: `GetProcessMemoryInfo`; macOS: `task_info`; Linux: `/proc/self/status`) y sale. |
 | `bench_core` (Qt Test, `QBENCHMARK`) | Streaming de 1 M filas desde una fixture SQLite generada por el propio bench (determinista, con semilla). Mide el tiempo y el pico de RSS del núcleo, sin UI. |
 | `bench_grid` (Qt Quick Test) | Carga 1 M filas en `ResultTableModel`, hace scroll programático por todo el rango y registra los tiempos de frame (`QQuickWindow::afterFrameEnd`). Devuelve el p95 y el máximo. |
-| `bench_tree` / `bench_editor` | Árbol con 10 000 hijos (provider fake) y editor con 10 000 líneas y escritura simulada. |
+| `bench_tree` / `bench_editor` | Árbol con 10 000 hijos (provider fake) y editor con 10 000 líneas y escritura simulada. `bench_editor` teclea 300 caracteres al principio, en medio y al final de 10 010 líneas con resaltado, y da p50, p95 y máximo por tecla. Debe ejecutarse en la plataforma nativa, no en `offscreen` (el renderizado por software multiplica por ~3 las cifras). `BENCH_VERBOSE=1` muestra el coste por posición y por tecla. |
 | `bench_package` | Tamaño de los artefactos del job de empaquetado (H10). |
 
 **CI:**

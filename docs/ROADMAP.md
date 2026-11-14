@@ -8,7 +8,7 @@ Estados: `pendiente` · `en curso` · `hecho` · `bloqueado`
 |---|---|---|
 | F0 | Entorno de desarrollo (Windows verificado) | hecho |
 | H0 | Esqueleto + CI en los tres sistemas | hecho (2026-11-12) |
-| H1 | Versión mínima (subhitos 1.1–1.8) | en curso (1.1–1.4 hechos) |
+| H1 | Versión mínima (subhitos 1.1–1.8) | en curso (1.1–1.5 hechos) |
 | H2 | Edición de datos | pendiente |
 | H3 | Autocompletado | pendiente |
 | H4 | Historial y consultas guardadas | pendiente |
@@ -111,15 +111,17 @@ Criterios:
 - Sin probar: el diálogo de contraseña de principio a fin desde QML (SQLite no tiene campo secreto; está cubierto en C++); motores con esquemas (llega con PostgreSQL en H1.8).
 - Limitaciones conocidas: Qt no da nombre accesible a los campos de contraseña (se usan una etiqueta visible y `Accessible.description`; también afecta al diálogo de conexión); el árbol no tiene barra de desplazamiento visible (Quarry.Controls aún no tiene `QScrollBar`); los cambios al editar una conexión conectada se aplican al reconectar.
 
-### H1.5 — Editor SQL
+### H1.5 — Editor SQL · **hecho (2026-11-14)**
 - Editor sobre `TextEdit` con KSyntaxHighlighting (`QQuickTextDocument`) y la definición del dialecto.
 - Números de línea, sentencia actual resaltada, Ctrl/Cmd+Enter (sentencia actual) y Ctrl/Cmd+Shift+Enter (todo).
 - Pestañas de editor (Ctrl/Cmd+T, Ctrl/Cmd+W) asociadas a una conexión.
 
 Criterios:
-- [ ] Resaltado correcto para SQLite y PostgreSQL (`$$…$$`, comentarios anidados).
-- [ ] Teclear en un archivo de 10 000 líneas no supera 16 ms por tecla (p95).
-- [ ] El lector de pantalla lee el texto del editor y el número de línea.
+- [x] Resaltado correcto para SQLite y PostgreSQL (`$$…$$`, comentarios anidados), comprobado en `tst_sql_document` con las definiciones "SQL" y "SQL (PostgreSQL)". Los delimitadores `$$` van como operador y el cuerpo como una sola cadena; `/* /* */ */` es un comentario, también en varias líneas.
+- [x] Teclear en 10 000 líneas: `bench_editor` (Release, plataforma nativa de Windows, de la tecla al texto resaltado y maquetado) da p50 4.9–5.9 ms y p95 10.7–12.1 ms. Con la CPU al 83 % por otra aplicación, la misma medida sube a p95 20–22 ms. En ctest, como `offscreen` infla las cifras, `tst_editor` compara 10 000 líneas con 200 y exige que el p95 no suba más de 16 ms. El coste crece con los bloques que hay detrás de la edición (QTextDocumentLayout).
+- [x] El editor expone rol `EditableText` con nombre ("SQL editor, Query 1") y descripción (conexión, producción, cómo salir con el teclado); la línea y la columna están en la barra de estado ("Ln 12, Col 3"); el recorrido de accesibilidad pasa sobre el editor, el selector de conexión y el diálogo de cierre. **Pendiente** de la pasada manual con NVDA/VoiceOver.
+- Además: pestañas guardadas en `quarry.db` (migración 2) y restauradas tras el primer frame; Mod+T con la conexión del nodo del árbol; selector de conexión en la cabecera; Mod+W con confirmación si hay texto; Ctrl+Tab / Ctrl+Shift+Tab; banda de la sentencia actual y marcado de Mod+Enter / Mod+Shift+Enter con anuncio (la ejecución llega en H1.6); números de línea virtualizados (~40 items para 10 000 líneas); textos en español. Arranque: +6 ms (393 → 399 ms, mediana de 7, Release) por la DLL de KSyntaxHighlighting.
+- Limitaciones conocidas: sin sangría de varias líneas; Mod+Shift+Enter aún no ejecuta solo la selección; sin barra de desplazamiento visible; la banda de la sentencia actual puede ir hasta 250 ms por detrás de una edición; los números de línea suponen líneas de altura uniforme.
 
 ### H1.6 — Ejecución asíncrona y cancelable en la UI
 - Barra de estado: `Running… 00:03`, botón Cancel (Esc / Ctrl/Cmd+.), filas y tiempo al acabar.

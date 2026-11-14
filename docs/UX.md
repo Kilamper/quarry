@@ -73,6 +73,11 @@ Orden de tabulación: sigue el orden visual (de izquierda a derecha y de arriba 
 - Las pestañas y su texto se guardan solos y se restauran al abrir la app. Mod+W cierra la pestaña; si tiene texto, pide confirmación (cerrar borra su texto guardado).
 - Mod+Enter / Mod+Shift+Enter: en H1.5 resaltan la sentencia actual / todas (con `splitStatements` del dialecto) y lo anuncian ("Statement 2 of 5, lines 4–7"); la ejecución llega en H1.6. La sentencia bajo el cursor siempre se ve resaltada.
 - Números de línea y "Ln 12, Col 3" en la barra de estado. Buscar y reemplazar (Mod+F) llega en un hito posterior.
+- Tab inserta un tabulador y Shift+Tab quita un nivel de sangría de la línea actual (un tabulador o hasta 4 espacios); aún no hay sangría de varias líneas. Para salir del editor sin ratón (WCAG 2.1.2): Ctrl+Tab / Ctrl+Shift+Tab (pestañas), F6 / Shift+F6, Mod+1/3 y Mod+K. El placeholder y la descripción accesible del editor lo indican.
+- Cabecera de la pestaña: punto de color, título, PRODUCTION y botón de cerrar; debajo, la fila con el selector de conexión. Los títulos ("Query N", traducido) son únicos entre las pestañas abiertas.
+- Diálogo de cierre: el foco empieza en Cancel; el botón destructivo es "Close and delete text".
+- Anuncios: "Statement 2 of 3, lines 2–3", "3 statements", "Choose a connection first.", "Nothing to run.", "No query is open.". El resaltado de Mod+Enter (contorno de acento además del fondo) desaparece con la siguiente edición o movimiento del cursor. Un fallo al guardar muestra un aviso (`ErrorPanel`) y se anuncia de forma enérgica.
+- Mod+Shift+Enter ejecuta todo; ejecutar solo la selección llega con H1.6 o después.
 
 ## 4. Atajos de teclado
 
@@ -81,8 +86,8 @@ Orden de tabulación: sigue el orden visual (de izquierda a derecha y de arriba 
 | Acción | Atajo |
 |---|---|
 | Paleta de comandos | Mod+K (alternativo: Mod+Shift+P) |
-| Ejecutar sentencia actual | Mod+Enter |
-| Ejecutar todo / selección | Mod+Shift+Enter |
+| Ejecutar sentencia actual | Mod+Enter (también con el Enter del teclado numérico) |
+| Ejecutar todo / selección | Mod+Shift+Enter (ídem) |
 | Cancelar ejecución | Esc (en el editor/resultados) · Mod+. |
 | Nueva pestaña de consulta | Mod+T |
 | Cerrar pestaña | Mod+W |
@@ -114,7 +119,7 @@ Todos los atajos aparecen en la paleta de comandos junto a su comando; así se p
 
 ## 6. Sistema de temas
 
-- Tokens semánticos en un singleton QML `Theme` respaldado por `ThemeManager` (C++): `bg.canvas`, `bg.surface`, `bg.raised`, `fg.default`, `fg.muted`, `fg.onAccent`, `border.default`, `border.strong`, `focus.ring`, `accent`, `danger`, `warning`, `success`, `selection.bg`, `selection.fg`, `grid.null`, `conn.<color>`, `conn.production`. Los componentes nunca usan colores literales.
+- Tokens semánticos en un singleton QML `Theme` respaldado por `ThemeManager` (C++): `bg.canvas`, `bg.surface`, `bg.raised`, `fg.default`, `fg.muted`, `fg.onAccent`, `border.default`, `border.strong`, `focus.ring`, `accent`, `danger`, `warning`, `success`, `selection.bg`, `selection.fg`, `grid.null`, `conn.<color>`, `conn.production` y los del resaltado SQL `syn.keyword`, `syn.string`, `syn.number`, `syn.comment`, `syn.function`, `syn.type` y `syn.operator` (≥ 4.5:1 sobre `bg.canvas` y sobre `bg.hover`, el fondo de la sentencia actual; los errores usan `danger`; en el alto contraste del sistema todos valen el color del texto y los comentarios van en cursiva). Los componentes nunca usan colores literales.
 - Temas: **Light**, **Dark** y **High contrast** (claro y oscuro). En el modo "System" se siguen:
   - `QStyleHints::colorScheme` (claro/oscuro) con `colorSchemeChanged`.
   - `QStyleHints::accessibility()->contrastPreference()` (Qt 6.10+) para el alto contraste. En Windows, el modo de alto contraste usa los colores del sistema (`QPalette`).
