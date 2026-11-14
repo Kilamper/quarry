@@ -600,6 +600,12 @@ void TstSchemaTreeModel::tenThousandTablesDoNotBlockTheEventLoop()
             [&] { maxGap = std::max(maxGap, sinceTick.restart()); });
     sinceTick.start();
     ticker.start();
+    // A machine that stalls this long while idle (macOS CI runners) cannot measure a 50 ms budget.
+    QTest::qWait(500);
+    if (maxGap > 25)
+        QSKIP(qPrintable(
+            QStringLiteral("idle event-loop gap %1 ms: too noisy to measure").arg(maxGap)));
+    maxGap = 0;
     QElapsedTimer clock;
     clock.start();
     m->fetchMore(tables);
