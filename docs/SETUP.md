@@ -66,6 +66,7 @@ $env:Path = "C:\Qt\6.12.0\msvc2022_64\bin;$env:Path"; .\build\windows-debug\env-
 | `QT_ROOT_DIR` | Opcional. Si existe, prevalece sobre `QT_BASE_DIR/<versión>/<arch>`. La define `install-qt-action` en la CI. |
 | `QT_BASE_DIR` | Variable de caché de CMake (`-DQT_BASE_DIR=...`) para instalar Qt fuera de la ruta por defecto. |
 | `QT_QPA_PLATFORM=offscreen` | Para ejecutar la app en Linux sin pantalla. El test smoke ya la usa. |
+| `QUARRY_TEST_SCREEN=<n>` | Opcional. Abre las ventanas de `tst_controls` y `bench_editor` en la pantalla `n` (índice de `QGuiApplication::screens()`), para que no tapen la principal. Sin definir o fuera de rango, no cambia nada. |
 
 ## Traducciones
 Los textos del código van en inglés (`qsTr`/`tr`). Para actualizar `src/app/i18n/quarry_es.ts` después de cambiar textos: `cmake --build --preset windows-debug --target update_translations` (o el preset de tu sistema). Después edita el `.ts` con Qt Linguist o a mano. Los `.qm` se generan en el build y no se versionan.
