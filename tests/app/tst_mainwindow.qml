@@ -617,4 +617,54 @@ TestCase {
         shell.connections.remove(id);
         tryCompare(shell.connections.model, "count", 0);
     }
+
+    // The same 200% check with editor tabs open: a colored PRODUCTION connection gives each tab a
+    // dot, a badge and a close button, and the header row shows the connection chooser.
+    function test_layoutSurvives200PercentZoomWithEditorTabs() {
+        const first = expandSampleTree();
+        shell.connections.prepare("");
+        shell.connections.form.setValue(0, testSampleDb);
+        const spy = createTemporaryObject(spyComp, testCase, {
+            target: shell.connections,
+            signalName: "connectionSaved"
+        });
+        verify(shell.connections.save({
+            "id": "",
+            "providerId": "sqlite",
+            "name": "Prod shop",
+            "colorIndex": 3,
+            "production": true,
+            "passwordMode": 1,
+            "password": "",
+            "passwordTouched": false
+        }));
+        tryCompare(spy, "count", 1);
+        const prod = spy.signalArguments[0][0];
+        tryVerify(() => shell.sidebar.currentId === prod);
+        keyClick(Qt.Key_T, Qt.ControlModifier);
+        keyClick(Qt.Key_T, Qt.ControlModifier);
+        compare(shell.editorTabs.count, 2);
+        compare(shell.editorTabs.connectionIdOf(1), prod);
+        tryVerify(() => shell.editorArea.currentEditor !== null && shell.editorArea.currentEditor.visible);
+        typeText("select 1");
+
+        const base = textProblems(shell);
+        compare(base.problems, []);
+        Theme.zoom = 2.0;
+        wait(150); // one layout pass
+        const zoomed = textProblems(shell);
+        verify(zoomed.count >= 10);
+        compare(zoomed.problems, []);
+        // The tab titles and the badge are among the texts that were inspected.
+        const texts = walker.findAll(shell.editorArea.tabBar, i => i.visible && i.text === "PRODUCTION");
+        verify(texts.length >= 1);
+        verify(walker.findAll(shell.editorArea, i => i.visible && i.text === "Query 2").length >= 1);
+
+        shell.editorTabs.closeTab(1);
+        shell.editorTabs.closeTab(0);
+        shell.connections.remove(first);
+        tryCompare(shell.connections.model, "count", 1);
+        shell.connections.remove(prod);
+        tryCompare(shell.connections.model, "count", 0);
+    }
 }

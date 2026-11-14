@@ -8,6 +8,10 @@ T.TabButton {
     id: control
 
     property bool closable: false
+    // Optional decoration before the title (a color dot) and after it (a badge). Decorative: the
+    // owner puts what they say into Accessible.name.
+    property alias leading: leadingRow.data
+    property alias trailing: trailingRow.data
 
     signal closeRequested
 
@@ -36,12 +40,26 @@ T.TabButton {
     contentItem: Row {
         spacing: Theme.spacing
 
+        Row {
+            id: leadingRow
+
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: Theme.spacing
+        }
+
         Text {
             anchors.verticalCenter: parent.verticalCenter
             text: control.text
             font: control.font
             color: control.checked ? Theme.fgDefault : Theme.fgMuted
             elide: Text.ElideRight
+        }
+
+        Row {
+            id: trailingRow
+
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: Theme.spacing
         }
 
         IconButton {

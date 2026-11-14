@@ -2,6 +2,25 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="es_ES" sourcelanguage="en">
 <context>
+    <name>CloseTabDialog</name>
+    <message>
+        <source>Close query</source>
+        <translation>Cerrar consulta</translation>
+    </message>
+    <message>
+        <source>Close “%1”? Its text is deleted and cannot be recovered.</source>
+        <translation>¿Cerrar «%1»? Su texto se borra y no se puede recuperar.</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Cancelar</translation>
+    </message>
+    <message>
+        <source>Close and delete text</source>
+        <translation>Cerrar y borrar el texto</translation>
+    </message>
+</context>
+<context>
     <name>ColorPicker</name>
     <message>
         <source>No color</source>
@@ -365,6 +384,45 @@
     </message>
 </context>
 <context>
+    <name>EditorArea</name>
+    <message>
+        <source>Editor tabs</source>
+        <translation>Pestañas del editor</translation>
+    </message>
+    <message>
+        <source>production</source>
+        <translation>producción</translation>
+    </message>
+    <message>
+        <source>New query</source>
+        <translation>Nueva consulta</translation>
+    </message>
+    <message>
+        <source>Connection</source>
+        <translation>Conexión</translation>
+    </message>
+    <message>
+        <source>Connection of %1</source>
+        <translation>Conexión de %1</translation>
+    </message>
+    <message>
+        <source>Choose a connection</source>
+        <translation>Elegir una conexión</translation>
+    </message>
+    <message>
+        <source>Your queries could not be saved</source>
+        <translation>No se han podido guardar tus consultas</translation>
+    </message>
+    <message>
+        <source>Write SQL here. %1 runs the current statement.</source>
+        <translation>Escribe SQL aquí. %1 ejecuta la sentencia actual.</translation>
+    </message>
+    <message>
+        <source>No query open</source>
+        <translation>Ninguna consulta abierta</translation>
+    </message>
+</context>
+<context>
     <name>ErrorPanel</name>
     <message>
         <source>Technical details</source>
@@ -406,6 +464,26 @@
     <message>
         <source>production</source>
         <translation>producción</translation>
+    </message>
+    <message>
+        <source>Ln %1, Col %2</source>
+        <translation>Lín. %1, Col. %2</translation>
+    </message>
+    <message>
+        <source>%1 opened, connection %2</source>
+        <translation>%1 abierta, conexión %2</translation>
+    </message>
+    <message>
+        <source>%1 opened, no connection</source>
+        <translation>%1 abierta, sin conexión</translation>
+    </message>
+    <message>
+        <source>%1 closed</source>
+        <translation>%1 cerrada</translation>
+    </message>
+    <message>
+        <source>%1, tab %2 of %3</source>
+        <translation>%1, pestaña %2 de %3</translation>
     </message>
     <message>
         <source>General</source>
@@ -500,6 +578,30 @@
         <translation>Región anterior</translation>
     </message>
     <message>
+        <source>New query</source>
+        <translation>Nueva consulta</translation>
+    </message>
+    <message>
+        <source>Close query</source>
+        <translation>Cerrar consulta</translation>
+    </message>
+    <message>
+        <source>Next query</source>
+        <translation>Consulta siguiente</translation>
+    </message>
+    <message>
+        <source>Previous query</source>
+        <translation>Consulta anterior</translation>
+    </message>
+    <message>
+        <source>Run current statement</source>
+        <translation>Ejecutar la sentencia actual</translation>
+    </message>
+    <message>
+        <source>Run all statements</source>
+        <translation>Ejecutar todas las sentencias</translation>
+    </message>
+    <message>
         <source>Toolbar</source>
         <translation>Barra de herramientas</translation>
     </message>
@@ -545,15 +647,15 @@
     </message>
     <message>
         <source>Editor tabs</source>
-        <translation>Pestañas del editor</translation>
+        <translation type="vanished">Pestañas del editor</translation>
     </message>
     <message>
         <source>No query open</source>
-        <translation>Ninguna consulta abierta</translation>
+        <translation type="vanished">Ninguna consulta abierta</translation>
     </message>
     <message>
         <source>Write SQL here. %1 runs the current statement.</source>
-        <translation>Escribe SQL aquí. %1 ejecuta la sentencia actual.</translation>
+        <translation type="vanished">Escribe SQL aquí. %1 ejecuta la sentencia actual.</translation>
     </message>
     <message>
         <source>Write SQL here. Ctrl+Enter runs the current statement.</source>
@@ -736,6 +838,25 @@
     </message>
 </context>
 <context>
+    <name>SqlEditor</name>
+    <message>
+        <source>SQL editor, %1</source>
+        <translation>Editor SQL, %1</translation>
+    </message>
+    <message>
+        <source>Connection: %1</source>
+        <translation>Conexión: %1</translation>
+    </message>
+    <message>
+        <source>production</source>
+        <translation>producción</translation>
+    </message>
+    <message>
+        <source>No connection. Choose a connection in the tab header.</source>
+        <translation>Sin conexión. Elige una conexión en la cabecera de la pestaña.</translation>
+    </message>
+</context>
+<context>
     <name>Theme</name>
     <message>
         <source>Blue</source>
@@ -810,6 +931,49 @@
     <message>
         <source>This field is required.</source>
         <translation>Este campo es obligatorio.</translation>
+    </message>
+</context>
+<context>
+    <name>quarry::ui::EditorTabsModel</name>
+    <message>
+        <source>Query %1</source>
+        <translation>Consulta %1</translation>
+    </message>
+    <message>
+        <source>No query is open.</source>
+        <translation>No hay ninguna consulta abierta.</translation>
+    </message>
+    <message>
+        <source>Choose a connection first.</source>
+        <translation>Elige primero una conexión.</translation>
+    </message>
+    <message>
+        <source>The database engine could not be loaded.</source>
+        <translation>No se ha podido cargar el motor de base de datos.</translation>
+    </message>
+    <message>
+        <source>Nothing to run.</source>
+        <translation>No hay nada que ejecutar.</translation>
+    </message>
+    <message>
+        <source>1 statement</source>
+        <translation>1 sentencia</translation>
+    </message>
+    <message>
+        <source>%1 statements</source>
+        <translation>%1 sentencias</translation>
+    </message>
+    <message>
+        <source>Statement %1 of %2</source>
+        <translation>Sentencia %1 de %2</translation>
+    </message>
+    <message>
+        <source>%1, line %2</source>
+        <translation>%1, línea %2</translation>
+    </message>
+    <message>
+        <source>%1, lines %2–%3</source>
+        <translation>%1, líneas %2–%3</translation>
     </message>
 </context>
 <context>

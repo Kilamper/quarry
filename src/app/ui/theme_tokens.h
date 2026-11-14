@@ -43,6 +43,15 @@ enum class Token : std::size_t {
     Conn5,
     Conn6,
     Conn7,
+    // Syntax highlighting of the SQL editor (UX.md section 3). Each one is >= 4.5:1 on bg.canvas
+    // and bg.hover (the current-statement band); tst_theme_contrast checks it.
+    SynKeyword,
+    SynString,
+    SynNumber,
+    SynComment,
+    SynFunction,
+    SynType,
+    SynOperator,
     Count
 };
 

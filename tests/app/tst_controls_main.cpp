@@ -121,6 +121,14 @@ public slots:
         constexpr int kMaxGapMs = 5000;
 #endif
         engine->rootContext()->setContextProperty(QStringLiteral("testMaxGapMs"), kMaxGapMs);
+        // Typing in a 10 000 line file, key press to painted frame (PERFORMANCE.md: p95 16 ms).
+#ifdef QT_NO_DEBUG
+        constexpr int kMaxKeystrokeMs = 16;
+#else
+        constexpr int kMaxKeystrokeMs = 1000;
+#endif
+        engine->rootContext()->setContextProperty(QStringLiteral("testMaxKeystrokeMs"),
+                                                  kMaxKeystrokeMs);
         engine->rootContext()->setContextProperty(QStringLiteral("a11yProbe"),
                                                   new AccessibilityProbe(engine));
     }

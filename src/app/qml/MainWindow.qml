@@ -12,7 +12,7 @@ Item {
 
     // Regions in F6 order. Hidden ones are skipped.
     readonly property list<Item> regions: [sidebarRegion, editorRegion, resultsRegion, statusRegion]
-    readonly property list<Command> ownCommands: [cmdPalette, cmdSettings, cmdNewConnection, cmdOpenSqlite, cmdEditConnection, cmdDuplicateConnection, cmdDeleteConnection, cmdDisconnect, cmdSidebar, cmdResults, cmdResetLayout, cmdZoomIn, cmdZoomOut, cmdZoomReset, cmdFocusSidebar, cmdFocusEditor, cmdFocusResults, cmdNextRegion, cmdPreviousRegion]
+    readonly property list<Command> ownCommands: [cmdPalette, cmdSettings, cmdNewConnection, cmdOpenSqlite, cmdEditConnection, cmdDuplicateConnection, cmdDeleteConnection, cmdDisconnect, cmdSidebar, cmdResults, cmdResetLayout, cmdZoomIn, cmdZoomOut, cmdZoomReset, cmdFocusSidebar, cmdFocusEditor, cmdFocusResults, cmdNextRegion, cmdPreviousRegion, cmdNewTab, cmdCloseTab, cmdNextTab, cmdPreviousTab, cmdRunStatement, cmdRunAll]
     // Overlays are created on first use (and preloaded when idle) to keep them off the startup
     // path; each is null until then.
     readonly property Item overlayItem: T.Overlay.overlay
@@ -20,9 +20,12 @@ Item {
     readonly property var settingsDialog: settingsLoader.item
     readonly property var connectionDialog: connectionLoader.item
     readonly property var deleteDialog: deleteLoader.item
+    readonly property var closeTabDialog: closeTabLoader.item
     readonly property var filePicker: pickerLoader.item
     readonly property alias connections: connectionsCtl
     readonly property alias sidebar: sidebar
+    readonly property alias editorTabs: tabsModel
+    readonly property alias editorArea: editorArea
     readonly property var appMenu: menuLoader.item
     // Where the connections live; empty = the application's own. Tests use a temporary one.
     property string databasePath: ""
@@ -30,6 +33,7 @@ Item {
     property bool sidebarVisible: shell.flag("sidebarVisible", true)
     property bool resultsVisible: shell.flag("resultsVisible", true)
     readonly property string selectedSummary: sidebar.hasCurrent ? qsTr("Selected connection: %1").arg(sidebar.currentName) + (sidebar.currentProduction ? ", " + qsTr("production") : "") : ""
+    readonly property string cursorSummary: editorArea.currentEditor ? qsTr("Ln %1, Col %2").arg(editorArea.currentEditor.line).arg(editorArea.currentEditor.column) : ""
     readonly property int defaultSidebarWidth: Theme.controlHeight * 10
     readonly property int defaultResultsHeight: Theme.controlHeight * 8
 
@@ -56,6 +60,64 @@ Item {
         const c = connectionsCtl.model.get(row);
         deleteLoader.active = true;
         deleteLoader.item.openFor(id, c.name, c.production);
+    }
+
+    // ---- editor tabs -------------------------------------------------------------------------
+
+    function openQuery() {
+        // The connection of the current tree node, else the one of the current tab (the model).
+        const row = tabsModel.openTab(sidebar.hasCurrent ? sidebar.currentId : "");
+        editorArea.errorMessage = "";
+        const name = tabsModel.titleOf(row);
+        const connection = editorArea.currentEditor?.connectionName ?? "";
+        editorArea.announce(connection !== "" ? qsTr("%1 opened, connection %2").arg(name).arg(connection) : qsTr("%1 opened, no connection").arg(name));
+        editorRegion.focusDefault();
+    }
+
+    // Closes the tab at once, or after confirming when it has text.
+    function closeQuery(row) {
+        if (row < 0 || row >= tabsModel.count)
+            return;
+        if (tabsModel.hasText(row)) {
+            closeTabLoader.active = true;
+            closeTabLoader.item.openFor(tabsModel.idOf(row), tabsModel.titleOf(row));
+        } else {
+            closeQueryNow(tabsModel.idOf(row));
+        }
+    }
+
+    function closeQueryNow(tabId) {
+        let row = -1;
+        for (let i = 0; i < tabsModel.count; ++i)
+            if (tabsModel.idOf(i) === tabId)
+                row = i;
+        if (row < 0)
+            return;
+        const name = tabsModel.titleOf(row);
+        const inEditor = regionOf(Window.activeFocusItem) === 1;
+        tabsModel.closeTab(row);
+        editorArea.errorMessage = "";
+        editorArea.announce(qsTr("%1 closed").arg(name));
+        // The focus was in the tab that is gone (or in the dialog that closed it): the editor
+        // that is now current takes it.
+        if (inEditor || regionOf(Window.activeFocusItem) < 0)
+            Qt.callLater(() => editorRegion.focusDefault());
+    }
+
+    function cycleQuery(step) {
+        tabsModel.cycle(step);
+        if (tabsModel.count > 0)
+            editorArea.announce(qsTr("%1, tab %2 of %3").arg(tabsModel.titleOf(tabsModel.currentIndex)).arg(tabsModel.currentIndex + 1).arg(tabsModel.count));
+    }
+
+    // Marks and announces what would run; H1.6 executes the same ranges (tabsModel.runRequested).
+    function runQuery(all) {
+        const editor = editorArea.currentEditor;
+        const plan = tabsModel.run(tabsModel.currentIndex, all, editor ? editor.edit.cursorPosition : 0);
+        editorArea.announce(plan.message);
+        if (editor)
+            editor.mark(plan.ranges);
+        return plan;
     }
 
     function regionOf(item) {
@@ -124,6 +186,7 @@ Item {
             CommandRegistry.registerCommand(c);
     }
     Component.onDestruction: {
+        tabsModel.flush();
         for (const c of ownCommands)
             CommandRegistry.unregisterCommand(c.commandId);
     }
@@ -163,13 +226,30 @@ Item {
         })
     }
 
-    // The provider scan and the store thread start after the first frame, never before it.
+    EditorTabsModel {
+        id: tabsModel
+
+        connections: connectionsCtl
+        databasePath: shell.databasePath
+    }
+
+    // The provider scan and the store threads start after the first frame, never before it.
     Connections {
         target: shell.Window.window
         enabled: !connectionsCtl.started
 
         function onFrameSwapped() {
             connectionsCtl.start();
+            tabsModel.start();
+        }
+    }
+
+    // Typed text is saved a second after the last edit; this covers quitting inside that second.
+    Connections {
+        target: Qt.application
+
+        function onAboutToQuit() {
+            tabsModel.flush();
         }
     }
 
@@ -371,6 +451,71 @@ Item {
         onTriggered: shell.cycleRegion(-1)
     }
 
+    Command {
+        id: cmdNewTab
+
+        commandId: "editor.newTab"
+        category: qsTr("Editor")
+        title: qsTr("New query")
+        shortcut: "Ctrl+T"
+        onTriggered: shell.openQuery()
+    }
+
+    Command {
+        id: cmdCloseTab
+
+        commandId: "editor.closeTab"
+        category: qsTr("Editor")
+        title: qsTr("Close query")
+        shortcut: "Ctrl+W"
+        onTriggered: shell.closeQuery(tabsModel.currentIndex)
+    }
+
+    Command {
+        id: cmdNextTab
+
+        commandId: "editor.nextTab"
+        category: qsTr("Editor")
+        title: qsTr("Next query")
+        shortcut: "Ctrl+Tab"
+        onTriggered: shell.cycleQuery(1)
+    }
+
+    Command {
+        id: cmdPreviousTab
+
+        commandId: "editor.previousTab"
+        category: qsTr("Editor")
+        title: qsTr("Previous query")
+        shortcut: "Ctrl+Shift+Tab"
+        // Keyboards report Shift+Tab as Backtab.
+        alternateShortcut: "Ctrl+Shift+Backtab"
+        onTriggered: shell.cycleQuery(-1)
+    }
+
+    Command {
+        id: cmdRunStatement
+
+        commandId: "editor.runStatement"
+        category: qsTr("Editor")
+        title: qsTr("Run current statement")
+        shortcut: "Ctrl+Enter"
+        // The main Enter key is Return; Enter is the keypad's.
+        alternateShortcut: "Ctrl+Return"
+        onTriggered: shell.runQuery(false)
+    }
+
+    Command {
+        id: cmdRunAll
+
+        commandId: "editor.runAll"
+        category: qsTr("Editor")
+        title: qsTr("Run all statements")
+        shortcut: "Ctrl+Shift+Enter"
+        alternateShortcut: "Ctrl+Shift+Return"
+        onTriggered: shell.runQuery(true)
+    }
+
     Instantiator {
         model: CommandRegistry.commands
 
@@ -501,29 +646,19 @@ Item {
 
                     regionName: qsTr("Editor")
                     color: Theme.bgCanvas
-                    defaultFocus: editorEmpty
+                    defaultFocus: editorArea.defaultFocus
                     T.SplitView.fillHeight: true
                     T.SplitView.minimumHeight: Theme.controlHeight * 4
 
-                    ColumnLayout {
+                    EditorArea {
+                        id: editorArea
+
                         anchors.fill: parent
-                        spacing: 0
-
-                        QTabBar {
-                            Layout.fillWidth: true
-                            accessibleName: qsTr("Editor tabs")
-                        }
-
-                        EmptyState {
-                            id: editorEmpty
-
-                            Layout.fillWidth: true
-                            Layout.fillHeight: true
-                            focusable: true
-                            iconGlyph: Icons.fileCode
-                            title: qsTr("No query open")
-                            message: qsTr("Write SQL here. %1 runs the current statement.").arg(CommandRegistry.displayShortcut("Ctrl+Enter"))
-                        }
+                        tabs: tabsModel
+                        connections: connectionsCtl
+                        newShortcut: cmdNewTab.shortcutText
+                        onNewRequested: CommandRegistry.trigger(cmdNewTab.commandId)
+                        onCloseRequested: row => shell.closeQuery(row)
                     }
                 }
 
@@ -601,7 +736,7 @@ Item {
                 activeFocusOnTab: true
 
                 Accessible.role: Accessible.StaticText
-                Accessible.name: statusText.text + (sidebar.hasCurrent ? ". " + shell.selectedSummary : "")
+                Accessible.name: statusText.text + (sidebar.hasCurrent ? ". " + shell.selectedSummary : "") + (shell.cursorSummary !== "" ? ". " + shell.cursorSummary : "")
                 Accessible.focusable: true
 
                 RowLayout {
@@ -635,6 +770,14 @@ Item {
 
                     ProductionBadge {
                         visible: sidebar.hasCurrent && sidebar.currentProduction
+                    }
+
+                    // The cursor of the current editor.
+                    Text {
+                        visible: shell.cursorSummary !== ""
+                        text: shell.cursorSummary
+                        font.pointSize: Theme.fontSize
+                        color: Theme.fgDefault
                     }
                 }
 
@@ -677,6 +820,15 @@ Item {
         active: false
         sourceComponent: DeleteConnectionDialog {
             onDeleteConfirmed: id => connectionsCtl.remove(id)
+        }
+    }
+
+    Loader {
+        id: closeTabLoader
+
+        active: false
+        sourceComponent: CloseTabDialog {
+            onCloseConfirmed: tabId => shell.closeQueryNow(tabId)
         }
     }
 

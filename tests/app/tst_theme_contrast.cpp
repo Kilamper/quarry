@@ -116,6 +116,13 @@ private slots:
             row(Token::Danger, Token::BgRaised);
             row(Token::Danger, Token::BgHover);
             row(Token::GridNull, Token::BgSurface);
+            // The SQL editor: every highlight color on the editor background and on the band
+            // that marks the current statement.
+            for (Token fg :
+                 { Token::SynKeyword, Token::SynString, Token::SynNumber, Token::SynComment,
+                   Token::SynFunction, Token::SynType, Token::SynOperator })
+                for (Token bg : { Token::BgCanvas, Token::BgHover })
+                    row(fg, bg);
         }
     }
 

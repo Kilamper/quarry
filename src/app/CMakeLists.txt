@@ -3,6 +3,8 @@
 # Linking the quarry_uiplugin target registers the module in a static link.
 # Warning flags on our own sources only: MSVC flags C4702 inside Qt headers as instantiated by the
 # generated qmlcache code, which must not fail the build.
+find_package(KF6SyntaxHighlighting CONFIG REQUIRED) # the SQL editor's highlighting (sql_document.cpp)
+
 function(quarry_app_warnings)
     if(MSVC)
         set(flags /W4 /permissive- /utf-8 /Zc:__cplusplus $<$<BOOL:${QUARRY_WARNINGS_AS_ERRORS}>:/WX>)
@@ -45,12 +47,16 @@ qt_add_qml_module(quarry_ui
         ui/connection_form_model.h
         ui/connection_list_model.cpp
         ui/connection_list_model.h
+        ui/editor_tabs_model.cpp
+        ui/editor_tabs_model.h
         ui/language_manager.cpp
         ui/language_manager.h
         ui/layout_store.cpp
         ui/layout_store.h
         ui/schema_tree_model.cpp
         ui/schema_tree_model.h
+        ui/sql_document.cpp
+        ui/sql_document.h
         ui/theme_manager.cpp
         ui/theme_manager.h
         ui/theme_tokens.cpp
@@ -64,11 +70,12 @@ qt_add_qml_module(quarry_ui
 )
 # ui/ too: the generated QML registration code includes the headers by bare file name.
 target_include_directories(quarry_ui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/ui)
-target_link_libraries(quarry_ui PUBLIC quarry_core Qt6::Gui Qt6::Qml Qt6::Quick)
+# KSyntaxHighlighting is dynamic (vcpkg, built against our Qt); it is found below.
+target_link_libraries(quarry_ui PUBLIC quarry_core Qt6::Gui Qt6::Qml Qt6::Quick KF6::SyntaxHighlighting)
 quarry_app_warnings(
     ui/command.cpp ui/command_registry.cpp ui/connection_controller.cpp ui/connection_form_model.cpp
-    ui/connection_list_model.cpp ui/language_manager.cpp ui/layout_store.cpp
-    ui/schema_tree_model.cpp
+    ui/connection_list_model.cpp ui/editor_tabs_model.cpp ui/language_manager.cpp ui/layout_store.cpp
+    ui/schema_tree_model.cpp ui/sql_document.cpp
     ui/theme_manager.cpp ui/theme_tokens.cpp)
 
 qt_add_executable(quarry main.cpp)
@@ -91,6 +98,9 @@ qt_add_qml_module(quarry
         qml/ProductionBadge.qml
         qml/FilePicker.qml
         qml/ErrorPanel.qml
+        qml/EditorArea.qml
+        qml/SqlEditor.qml
+        qml/CloseTabDialog.qml
     DEPENDENCIES QtQuick QtQuick.Controls.Basic QtQuick.Layouts QtQml Quarry.Controls
 )
 
@@ -109,8 +119,6 @@ qt_add_translations(quarry_ui
     LUPDATE_OPTIONS -locations none
     NO_GENERATE_PLURALS_TS_FILE)
 
-# Used by the SQL editor in milestone 1.5; resolved now to prove the Qt shim wiring.
-find_package(KF6SyntaxHighlighting CONFIG REQUIRED)
 
 add_test(NAME quarry-smoke COMMAND quarry --smoke)
 set_tests_properties(quarry-smoke PROPERTIES
