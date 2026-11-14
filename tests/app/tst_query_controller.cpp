@@ -283,9 +283,11 @@ private slots:
         QueryState *s = stateOf(e, row);
         QSignalSpy changed(s, &QueryState::changed);
         run(e, row, kSlowSql);
+        // Wait for the tick itself: elapsedText() reads the clock, so it can show 00:01 a moment
+        // before the 1 s timer fires.
+        QTRY_VERIFY_WITH_TIMEOUT(changed.count() >= 2, 5000);
         QTRY_VERIFY_WITH_TIMEOUT(s->elapsedText() == QLatin1String("00:01"), 5000);
         QCOMPARE(s->statusText(), QStringLiteral("Running… 00:01"));
-        QVERIFY(changed.count() >= 2);
         e.queries->cancel(e.tabs->idOf(row));
         waitFor(s, QStringLiteral("cancelled"));
     }
