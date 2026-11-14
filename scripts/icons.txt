@@ -30,6 +30,10 @@ link
 list-tree
 plug
 unplug
+layers
+hash
+square-function
+braces
 
 # Editor / execution (H1.5-H1.6)
 play

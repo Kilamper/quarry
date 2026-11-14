@@ -552,9 +552,39 @@ TestCase {
 
     // ---- zoom --------------------------------------------------------------------------------
 
+    // A connection expanded down to its columns: names, details and the indentation of a deep
+    // tree must wrap, never be cut off.
+    function expandSampleTree() {
+        const spy = createTemporaryObject(spyComp, testCase, {
+            target: shell.connections,
+            signalName: "connectionSaved"
+        });
+        shell.connections.openSqliteFile(Qt.url("file:///" + testSampleDb));
+        tryCompare(spy, "count", 1);
+        const tree = shell.sidebar.tree;
+        shell.focusRegion(0);
+        keyClick(Qt.Key_Right);
+        tryVerify(() => tree.rows === 2 && tree.roleAt(1, SchemaTreeModel.NameRole) === "main", 10000);
+        keyClick(Qt.Key_Down);
+        keyClick(Qt.Key_Right);
+        tryVerify(() => tree.rows === 4);
+        keyClick(Qt.Key_Right);
+        keyClick(Qt.Key_Right);
+        tryVerify(() => tree.rows === 8);
+        keyClick(Qt.Key_Right); // customers
+        keyClick(Qt.Key_Right); // expand it: Columns, Indexes, Foreign keys
+        tryVerify(() => tree.rows === 11);
+        keyClick(Qt.Key_Right);
+        keyClick(Qt.Key_Right); // expand Columns
+        tryVerify(() => tree.rows === 13);
+        return spy.signalArguments[0][0];
+    }
+
     function test_layoutSurvives200PercentZoom() {
+        const id = expandSampleTree();
+        shell.focusRegion(1);
         const base = textProblems(shell);
-        verify(base.count >= 10, "only " + base.count + " texts inspected");
+        verify(base.count >= 20, "only " + base.count + " texts inspected");
         compare(base.problems, []);
 
         Theme.zoom = 2.0;
@@ -583,5 +613,8 @@ TestCase {
             const p = r.mapToItem(null, 0, 0);
             verify(p.y + r.height <= testCase.height + 1, r.regionName + " leaves the window");
         }
+
+        shell.connections.remove(id);
+        tryCompare(shell.connections.model, "count", 0);
     }
 }

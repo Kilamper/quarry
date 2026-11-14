@@ -44,12 +44,21 @@ ConnectionController::ConnectionController(QObject *parent)
     , m_form(this)
     , m_tester(m_registry, this)
     , m_credentials(this)
+    , m_tree(&m_model, &m_registry, this)
 {
     m_backend.write
         = [this](QUuid id, QString pw) { m_credentials.writePassword(id, std::move(pw)); };
     m_backend.read = [this](QUuid id) { m_credentials.readPassword(id); };
     m_backend.remove = [this](QUuid id) { m_credentials.deletePassword(id); };
     m_backend.forget = [this](QUuid id) { m_credentials.forgetForSession(id); };
+
+    SchemaCredentials tree;
+    tree.read = [this](QUuid id) { m_backend.read(id); };
+    tree.session = [this](QUuid id) { return m_credentials.sessionPassword(id); };
+    tree.remember
+        = [this](QUuid id, QString pw) { m_credentials.rememberForSession(id, std::move(pw)); };
+    tree.forget = [this](QUuid id) { m_backend.forget(id); };
+    m_tree.setCredentials(std::move(tree));
 
     connect(&m_credentials, &CredentialStore::passwordRead, this,
             &ConnectionController::onPasswordRead);
@@ -318,6 +327,8 @@ void ConnectionController::onPasswordDeleted(QUuid) { }
 
 void ConnectionController::onCredentialFailed(QUuid id, const Error &error)
 {
+    if (m_tree.onPasswordFailed(id, error))
+        return;
     if (m_pending && m_pending->stage == Stage::WritingPassword && m_pending->profile.id == id) {
         fail(error.message, error.detail, true);
     } else if (m_testReadId == id && !id.isNull()) {
@@ -365,6 +376,7 @@ bool ConnectionController::testConnection(const QVariantMap &draft)
 
 void ConnectionController::onPasswordRead(QUuid id, QString password)
 {
+    m_tree.onPasswordRead(id, password);
     if (m_testReadId.isNull() || id != m_testReadId)
         return;
     m_testReadId = QUuid();

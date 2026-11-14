@@ -2,6 +2,7 @@
 
 #include "connection_form_model.h"
 #include "connection_list_model.h"
+#include "schema_tree_model.h"
 
 #include <quarry/connection_profile.h>
 #include <quarry/connection_tester.h>
@@ -49,6 +50,7 @@ class ConnectionController : public QObject
                    configChanged FINAL)
     Q_PROPERTY(quarry::ui::ConnectionListModel *model READ model CONSTANT FINAL)
     Q_PROPERTY(quarry::ui::ConnectionFormModel *form READ form CONSTANT FINAL)
+    Q_PROPERTY(quarry::ui::SchemaTreeModel *tree READ tree CONSTANT FINAL)
     Q_PROPERTY(QVariantList engines READ engines NOTIFY enginesChanged FINAL)
     Q_PROPERTY(bool started READ started NOTIFY startedChanged FINAL)
     Q_PROPERTY(bool saving READ saving NOTIFY savingChanged FINAL)
@@ -71,6 +73,7 @@ public:
 
     ConnectionListModel *model() { return &m_model; }
     ConnectionFormModel *form() { return &m_form; }
+    SchemaTreeModel *tree() { return &m_tree; }
     QVariantList engines() const { return m_engines; }
     bool started() const { return m_started; }
     bool saving() const { return m_pending.has_value(); }
@@ -165,6 +168,7 @@ private:
     quarry::ConnectionTester m_tester;
     quarry::CredentialStore m_credentials;
     CredentialBackend m_backend;
+    SchemaTreeModel m_tree; // after the registry: the sessions' code lives in its plugins
     QVariantList m_engines;
     bool m_scanned = false;
     bool m_started = false;

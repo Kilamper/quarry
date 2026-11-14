@@ -12,7 +12,7 @@ Item {
 
     // Regions in F6 order. Hidden ones are skipped.
     readonly property list<Item> regions: [sidebarRegion, editorRegion, resultsRegion, statusRegion]
-    readonly property list<Command> ownCommands: [cmdPalette, cmdSettings, cmdNewConnection, cmdOpenSqlite, cmdEditConnection, cmdDuplicateConnection, cmdDeleteConnection, cmdSidebar, cmdResults, cmdResetLayout, cmdZoomIn, cmdZoomOut, cmdZoomReset, cmdFocusSidebar, cmdFocusEditor, cmdFocusResults, cmdNextRegion, cmdPreviousRegion]
+    readonly property list<Command> ownCommands: [cmdPalette, cmdSettings, cmdNewConnection, cmdOpenSqlite, cmdEditConnection, cmdDuplicateConnection, cmdDeleteConnection, cmdDisconnect, cmdSidebar, cmdResults, cmdResetLayout, cmdZoomIn, cmdZoomOut, cmdZoomReset, cmdFocusSidebar, cmdFocusEditor, cmdFocusResults, cmdNextRegion, cmdPreviousRegion]
     // Overlays are created on first use (and preloaded when idle) to keep them off the startup
     // path; each is null until then.
     readonly property Item overlayItem: T.Overlay.overlay
@@ -245,6 +245,16 @@ Item {
         title: qsTr("Delete connection")
         enabled: sidebar.hasCurrent
         onTriggered: shell.askDelete(sidebar.currentId)
+    }
+
+    Command {
+        id: cmdDisconnect
+
+        commandId: "connection.disconnect"
+        category: qsTr("Connection")
+        title: qsTr("Disconnect")
+        enabled: sidebar.currentConnected
+        onTriggered: connectionsCtl.tree.disconnectConnection(sidebar.currentId)
     }
 
     Command {
@@ -601,7 +611,7 @@ Item {
                     spacing: Theme.spacing
 
                     Icon {
-                        text: Icons.unplug
+                        text: sidebar.currentConnected ? Icons.plug : Icons.unplug
                         color: Theme.fgMuted
                     }
 
@@ -609,13 +619,13 @@ Item {
                         id: statusText
 
                         Layout.fillWidth: true
-                        text: qsTr("Not connected")
+                        text: sidebar.currentConnected ? qsTr("Connected") : qsTr("Not connected")
                         font.pointSize: Theme.fontSize
                         color: Theme.fgDefault
                         wrapMode: Text.WordWrap
                     }
 
-                    // The selected connection (there is no session until H1.4).
+                    // The connection of the selected node.
                     Text {
                         visible: sidebar.hasCurrent
                         text: qsTr("Selected: %1").arg(sidebar.currentName)

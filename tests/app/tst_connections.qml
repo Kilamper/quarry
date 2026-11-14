@@ -35,6 +35,10 @@ TestCase {
         return shell.connections.model;
     }
 
+    function currentItem() {
+        return shell.sidebar.tree.itemAtIndex(shell.sidebar.tree.selectionModel.currentIndex);
+    }
+
     function typeText(text) {
         for (const ch of text)
             keyClick(ch === " " ? Qt.Key_Space : ch);
@@ -175,13 +179,18 @@ TestCase {
         compare(walker.problems(shell.sidebar), []);
         shell.sidebar.selectId(prod);
         tryVerify(() => shell.sidebar.hasCurrent);
-        const item = shell.sidebar.list.currentItem;
-        compare(item.Accessible.role, Accessible.ListItem);
+        tryVerify(() => currentItem() !== null);
+        const item = currentItem();
+        compare(item.Accessible.role, Accessible.TreeItem);
         // name, engine, color name and "production": never color or the badge alone
         compare(item.Accessible.name, "Shop, SQLite, Purple, production");
         verify(item.Accessible.selected);
         verify(find(item, i => i.text === "PRODUCTION") !== undefined);
-        compare(shell.sidebar.list.Accessible.role, Accessible.List);
+        compare(shell.sidebar.tree.Accessible.role, Accessible.Tree);
+        // level and position are said in words (Qt has no level/position-in-set properties)
+        compare(item.Accessible.description, "Not connected, " + model().get(model().indexOf(prod)).summary + ", level 1, 2 of 2");
+        compare(item.Accessible.expandable, true);
+        compare(item.Accessible.expanded, false);
 
         // The status bar names the selection and marks production with text.
         const status = shell.regions[3];
@@ -198,16 +207,18 @@ TestCase {
         addSqlite(newFile());
         addSqlite(newFile());
         tryCompare(model(), "count", 2);
-        shell.sidebar.list.currentIndex = 0;
+        shell.sidebar.tree.goTo(0);
         shell.focusRegion(0);
-        verify(shell.sidebar.list.activeFocus);
-        compare(shell.sidebar.list.currentIndex, 0);
+        verify(shell.sidebar.tree.activeFocus);
+        compare(shell.sidebar.tree.cursorRow(), 0);
         keyClick(Qt.Key_Down);
-        compare(shell.sidebar.list.currentIndex, 1);
+        compare(shell.sidebar.tree.cursorRow(), 1);
         keyClick(Qt.Key_Up);
-        compare(shell.sidebar.list.currentIndex, 0);
+        compare(shell.sidebar.tree.cursorRow(), 0);
         keyClick(Qt.Key_End);
-        compare(shell.sidebar.list.currentIndex, 1);
+        compare(shell.sidebar.tree.cursorRow(), 1);
+        keyClick(Qt.Key_Home);
+        compare(shell.sidebar.tree.cursorRow(), 0);
     }
 
     function test_contextMenuByKeyboard() {
@@ -216,11 +227,12 @@ TestCase {
         keyClick(Qt.Key_F10, Qt.ShiftModifier);
         const menu = shell.sidebar.menu;
         tryVerify(() => menu.opened);
-        compare(menu.count, 3);
-        compare([0, 1, 2].map(i => menu.itemAt(i).text), ["Edit", "Duplicate", "Delete"]);
+        compare(menu.count, 4);
+        compare([0, 1, 2, 3].map(i => menu.itemAt(i).text), ["Edit", "Duplicate", "Disconnect", "Delete"]);
+        compare(menu.itemAt(2).enabled, false, "nothing to disconnect yet");
         keyClick(Qt.Key_Escape);
         tryVerify(() => !menu.visible);
-        tryVerify(() => shell.sidebar.list.activeFocus);
+        tryVerify(() => shell.sidebar.tree.activeFocus);
     }
 
     // ---- the keyboard-only flow --------------------------------------------------------------
@@ -265,16 +277,19 @@ TestCase {
         tryCompare(shell.sidebar, "currentName", "Flow DB");
         compare(model().get(0).summary, path.split("/").pop());
 
-        // Edit with Enter on the list
+        // Edit from the tree's context menu (Enter on a connection now expands it)
         keyClick(Qt.Key_1, Qt.ControlModifier);
-        tryVerify(() => shell.sidebar.list.activeFocus);
+        tryVerify(() => shell.sidebar.tree.activeFocus);
+        keyClick(Qt.Key_F10, Qt.ShiftModifier);
+        tryVerify(() => shell.sidebar.menu.opened);
+        keyClick(Qt.Key_Down);
         keyClick(Qt.Key_Return);
         tryVerify(() => shell.connectionDialog.opened && shell.connectionDialog.editing);
         compare(shell.connectionDialog.profileName, "Flow DB");
         compare(field("Database file (or :memory:)").text, path);
         keyClick(Qt.Key_Escape);
         tryVerify(() => !shell.connectionDialog.visible);
-        tryVerify(() => shell.sidebar.list.activeFocus, 5000, "focus must return to the list");
+        tryVerify(() => shell.sidebar.tree.activeFocus, 5000, "focus must return to the tree");
 
         // Delete with confirmation: Cancel has the focus, Delete is one Tab away
         keyClick(Qt.Key_Delete);
@@ -580,7 +595,7 @@ TestCase {
         tryCompare(model(), "count", 1);
         shell.sidebar.selectId(model().get(0).connectionId);
         Language.choice = Language.Choice.Spanish;
-        tryCompare(shell.sidebar.list.currentItem.Accessible, "name", "Tienda, SQLite, Morado, producción");
+        tryVerify(() => currentItem()?.Accessible.name === "Tienda, SQLite, Morado, producción");
         compare(walker.problems(shell.sidebar), []);
         verify(find(shell.sidebar, i => i.text === "PRODUCCIÓN") !== undefined);
         compare(CommandRegistry.find("connection.new").title, "Nueva conexión");

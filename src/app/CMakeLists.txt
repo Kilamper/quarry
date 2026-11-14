@@ -49,6 +49,8 @@ qt_add_qml_module(quarry_ui
         ui/language_manager.h
         ui/layout_store.cpp
         ui/layout_store.h
+        ui/schema_tree_model.cpp
+        ui/schema_tree_model.h
         ui/theme_manager.cpp
         ui/theme_manager.h
         ui/theme_tokens.cpp
@@ -66,6 +68,7 @@ target_link_libraries(quarry_ui PUBLIC quarry_core Qt6::Gui Qt6::Qml Qt6::Quick)
 quarry_app_warnings(
     ui/command.cpp ui/command_registry.cpp ui/connection_controller.cpp ui/connection_form_model.cpp
     ui/connection_list_model.cpp ui/language_manager.cpp ui/layout_store.cpp
+    ui/schema_tree_model.cpp
     ui/theme_manager.cpp ui/theme_tokens.cpp)
 
 qt_add_executable(quarry main.cpp)
@@ -81,6 +84,7 @@ qt_add_qml_module(quarry
         qml/EmptyState.qml
         qml/Region.qml
         qml/ConnectionList.qml
+        qml/PasswordDialog.qml
         qml/ConnectionDialog.qml
         qml/ColorPicker.qml
         qml/DeleteConnectionDialog.qml

@@ -7,7 +7,10 @@ QtObject {
         const found = [];
         const walk = item => {
             if (item.visible && item.activeFocusOnTab) {
-                if (!item.Accessible.name)
+                // Qt hides the Accessible.name of a password edit (qquickaccessibleattached_p.h), so
+                // the label we gave it is checked through its own properties instead.
+                const name = item.Accessible.passwordEdit ? (item.accessibleName || item.Accessible.description) : item.Accessible.name;
+                if (!name)
                     found.push(item + " has no Accessible.name");
                 if (item.Accessible.role === Accessible.NoRole)
                     found.push(item + " has Accessible.NoRole");

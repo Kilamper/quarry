@@ -229,8 +229,88 @@
         <translation>Abrir archivo SQLite</translation>
     </message>
     <message>
+        <source>Database</source>
+        <translation>Base de datos</translation>
+    </message>
+    <message>
+        <source>Schema</source>
+        <translation>Esquema</translation>
+    </message>
+    <message>
+        <source>Table</source>
+        <translation>Tabla</translation>
+    </message>
+    <message>
+        <source>View</source>
+        <translation>Vista</translation>
+    </message>
+    <message>
+        <source>Materialized view</source>
+        <translation>Vista materializada</translation>
+    </message>
+    <message>
+        <source>Column</source>
+        <translation>Columna</translation>
+    </message>
+    <message>
+        <source>Index</source>
+        <translation>Índice</translation>
+    </message>
+    <message>
+        <source>Foreign key</source>
+        <translation>Clave foránea</translation>
+    </message>
+    <message>
+        <source>Function</source>
+        <translation>Función</translation>
+    </message>
+    <message>
+        <source>Procedure</source>
+        <translation>Procedimiento</translation>
+    </message>
+    <message>
+        <source>Sequence</source>
+        <translation>Secuencia</translation>
+    </message>
+    <message>
+        <source>Trigger</source>
+        <translation>Disparador</translation>
+    </message>
+    <message>
+        <source>Error</source>
+        <translation>Error</translation>
+    </message>
+    <message>
+        <source>Connected</source>
+        <translation>Conectada</translation>
+    </message>
+    <message>
+        <source>Not connected</source>
+        <translation>Sin conexión</translation>
+    </message>
+    <message>
+        <source>level %1</source>
+        <translation>nivel %1</translation>
+    </message>
+    <message>
+        <source>%1 of %2</source>
+        <translation>%1 de %2</translation>
+    </message>
+    <message>
+        <source>Press Enter to retry</source>
+        <translation>Pulsa Intro para reintentar</translation>
+    </message>
+    <message>
         <source>production</source>
         <translation>producción</translation>
+    </message>
+    <message>
+        <source>Retry</source>
+        <translation>Reintentar</translation>
+    </message>
+    <message>
+        <source>Technical details</source>
+        <translation>Detalles técnicos</translation>
     </message>
     <message>
         <source>Connection actions</source>
@@ -243,6 +323,10 @@
     <message>
         <source>Duplicate</source>
         <translation>Duplicar</translation>
+    </message>
+    <message>
+        <source>Disconnect</source>
+        <translation>Desconectar</translation>
     </message>
     <message>
         <source>Delete</source>
@@ -360,6 +444,10 @@
         <translation>Eliminar conexión</translation>
     </message>
     <message>
+        <source>Disconnect</source>
+        <translation>Desconectar</translation>
+    </message>
+    <message>
         <source>View</source>
         <translation>Ver</translation>
     </message>
@@ -426,6 +514,10 @@
     <message>
         <source>Sidebar</source>
         <translation>Barra lateral</translation>
+    </message>
+    <message>
+        <source>Connected</source>
+        <translation>Conectada</translation>
     </message>
     <message>
         <source>Selected: %1</source>
@@ -514,6 +606,33 @@
     <message>
         <source>OK</source>
         <translation type="vanished">Aceptar</translation>
+    </message>
+</context>
+<context>
+    <name>PasswordDialog</name>
+    <message>
+        <source>Password required</source>
+        <translation>Contraseña necesaria</translation>
+    </message>
+    <message>
+        <source>Enter the password for “%1”. Quarry keeps it in memory until you close the application.</source>
+        <translation>Introduce la contraseña de “%1”. Quarry la guarda en memoria hasta que cierres la aplicación.</translation>
+    </message>
+    <message>
+        <source>The password was not accepted. Try again.</source>
+        <translation>No se ha aceptado la contraseña. Inténtalo de nuevo.</translation>
+    </message>
+    <message>
+        <source>Password</source>
+        <translation>Contraseña</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Cancelar</translation>
+    </message>
+    <message>
+        <source>Connect</source>
+        <translation>Conectar</translation>
     </message>
 </context>
 <context>
@@ -691,6 +810,41 @@
     <message>
         <source>This field is required.</source>
         <translation>Este campo es obligatorio.</translation>
+    </message>
+</context>
+<context>
+    <name>quarry::ui::SchemaTreeModel</name>
+    <message>
+        <source>The connection is closed.</source>
+        <translation>La conexión está cerrada.</translation>
+    </message>
+    <message>
+        <source>Loading…</source>
+        <translation>Cargando…</translation>
+    </message>
+    <message>
+        <source>This connection no longer exists.</source>
+        <translation>Esta conexión ya no existe.</translation>
+    </message>
+    <message>
+        <source>The system keychain is not available.</source>
+        <translation>El llavero del sistema no está disponible.</translation>
+    </message>
+    <message>
+        <source>(empty)</source>
+        <translation>(vacío)</translation>
+    </message>
+    <message>
+        <source>Connected to %1</source>
+        <translation>Conectado a %1</translation>
+    </message>
+    <message>
+        <source>Something went wrong.</source>
+        <translation>Algo ha salido mal.</translation>
+    </message>
+    <message>
+        <source>Disconnected from %1</source>
+        <translation>Desconectado de %1</translation>
     </message>
 </context>
 </TS>
