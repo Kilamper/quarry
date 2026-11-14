@@ -81,6 +81,12 @@ TestCase {
         return shell.connectionDialog;
     }
 
+    // The TreeView catches up with the model a pass later (slow CI runners show it): keyboard
+    // steps right after a save would otherwise act on the old rows.
+    function waitForTreeRoots() {
+        tryVerify(() => shell.sidebar.tree !== null && shell.sidebar.tree.rows >= model().count);
+    }
+
     function addSqlite(file) {
         const spy = createTemporaryObject(spyComp, testCase, {
             target: shell.connections,
@@ -88,6 +94,7 @@ TestCase {
         });
         shell.connections.openSqliteFile(Qt.url("file:///" + file));
         tryCompare(spy, "count", 1);
+        waitForTreeRoots();
         return spy.signalArguments[0][0];
     }
 
@@ -110,6 +117,7 @@ TestCase {
             "passwordTouched": false
         }));
         tryCompare(spy, "count", 1);
+        waitForTreeRoots();
         return spy.signalArguments[0][0];
     }
 

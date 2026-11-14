@@ -73,6 +73,8 @@ TestCase {
         });
         shell.connections.openSqliteFile(Qt.url("file:///" + path));
         tryCompare(spy, "count", 1);
+        // The TreeView catches up with the model a pass later (slow CI runners show it).
+        tryVerify(() => shell.sidebar.tree !== null && shell.sidebar.tree.rows >= model().count);
         return spy.signalArguments[0][0];
     }
 
