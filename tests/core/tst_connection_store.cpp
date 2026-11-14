@@ -259,7 +259,7 @@ void TstConnectionStore::migrationIsIdempotentAcrossReopen()
     sqlite3_stmt *stmt = nullptr;
     QCOMPARE(sqlite3_prepare_v2(db, "PRAGMA user_version", -1, &stmt, nullptr), SQLITE_OK);
     QCOMPARE(sqlite3_step(stmt), SQLITE_ROW);
-    QCOMPARE(sqlite3_column_int(stmt, 0), 1);
+    QCOMPARE(sqlite3_column_int(stmt, 0), 2);
     sqlite3_finalize(stmt);
     sqlite3_close(db);
 }

@@ -27,13 +27,20 @@ qt_add_library(quarry_core STATIC
     include/quarry/connection_store.h
     include/quarry/connection_tester.h
     include/quarry/credential_store.h
+    include/quarry/editor_tab.h
+    include/quarry/editor_tab_store.h
     include/quarry/provider_registry.h
     include/quarry/session.h
+    src/app_database.h
+    src/app_database.cpp
     src/connection_store.cpp
     src/connection_store_worker.h
     src/connection_store_worker.cpp
     src/connection_tester.cpp
     src/credential_store.cpp
+    src/editor_tab_store.cpp
+    src/editor_tab_store_worker.h
+    src/editor_tab_store_worker.cpp
     src/provider_registry.cpp
     src/session.cpp
     src/session_worker.h

@@ -1,10 +1,10 @@
 #pragma once
 
+#include "app_database.h"
+
 #include <quarry/connection_store.h>
 
 #include <QObject>
-
-struct sqlite3;
 
 namespace quarry {
 
@@ -15,7 +15,6 @@ class ConnectionStoreWorker : public QObject
 
 public:
     explicit ConnectionStoreWorker(QString databasePath);
-    ~ConnectionStoreWorker() override;
 
     void load();
     void save(const ConnectionProfile &profile, const QStringList &secretFieldKeys);
@@ -30,14 +29,9 @@ signals:
     void failed(quarry::Error error);
 
 private:
-    bool ensureOpen(Error &error);
-    bool migrate(Error &error);
-    Error sqliteError(int rc, const QString &context) const;
-    bool exec(const char *sql, Error &error);
     bool selectOne(const QUuid &id, ConnectionProfile &out, Error &error);
 
-    QString m_path;
-    sqlite3 *m_db = nullptr;
+    AppDatabase m_database;
 };
 
 } // namespace quarry
